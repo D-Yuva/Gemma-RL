@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Local Setup Guide — M4 Pro · Datasets · Qwen 14B Teacher</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Fira+Code:wght@400;500&family=Playfair+Display:ital@1&display=swap');
+
+:root {
+  /* Warm dark editorial palette */
+  --ink: #0f0d0b;
+  --ink2: #171410;
+  --ink3: #201c17;
+  --ink4: #2a2520;
+  --rule: rgba(255,240,210,0.06);
+  --rule2: rgba(255,240,210,0.11);
+  --body: #c8bfb0;
+  --dim: #6b6257;
+  --white: #f2ece4;
+
+  --gold: #d4a843;
+  --gold-l: #f0cc7a;
+  --gold-d: #a07820;
+  --sage: #5aab7a;
+  --sage-l: #9ed4b5;
+  --rust: #d4624a;
+  --rust-l: #f0a090;
+  --sky: #4a90d4;
+  --sky-l: #90bef0;
+  --violet: #8a6dd4;
+  --violet-l: #b8a4f0;
+  --teal: #3aabad;
+  --teal-l: #80d4d6;
+  --pink: #d4548a;
+
+  --mono: 'Fira Code', monospace;
+  --sans: 'Outfit', sans-serif;
+  --serif: 'Playfair Display', serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--ink); color: var(--body); font-family: var(--sans); font-size: 14px; line-height: 1.7; }
+
+/* ── TOPBAR ── */
+.topbar { background: var(--ink2); border-bottom: 1px solid var(--rule2); display: flex; align-items: center; padding: 0 32px; height: 52px; position: sticky; top: 0; z-index: 200; gap: 0; overflow-x: auto; }
+.topbar-brand { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); padding-right: 24px; border-right: 1px solid var(--rule2); margin-right: 16px; white-space: nowrap; }
+.tab { padding: 0 18px; height: 52px; display: flex; align-items: center; font-size: 12px; font-weight: 500; color: var(--dim); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.15s; }
+.tab:hover { color: var(--body); }
+.tab.active { color: var(--gold-l); border-bottom-color: var(--gold); }
+
+/* ── PAGES ── */
+.page { display: none; max-width: 940px; margin: 0 auto; padding: 52px 40px 80px; }
+.page.active { display: block; }
+
+/* ── HERO ── */
+.hero { background: linear-gradient(140deg, #0d0b09 0%, #1a1208 55%, #0f0d0b 100%); border: 1px solid var(--rule2); border-radius: 14px; padding: 44px 48px 40px; margin-bottom: 44px; position: relative; overflow: hidden; }
+.hero::after { content: ''; position: absolute; bottom: -60px; right: -60px; width: 220px; height: 220px; background: radial-gradient(circle, rgba(212,168,67,0.1) 0%, transparent 65%); pointer-events: none; }
+.hero-label { font-size: 10px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.hero-label::before { content: ''; width: 28px; height: 1px; background: var(--gold-d); }
+.hero h1 { font-size: 32px; font-weight: 800; color: var(--white); line-height: 1.2; margin-bottom: 12px; }
+.hero h1 em { font-family: var(--serif); font-style: italic; color: var(--gold-l); font-weight: 400; }
+.hero p { font-size: 14px; color: var(--dim); line-height: 1.8; max-width: 560px; }
+.hero-pills { display: flex; gap: 8px; margin-top: 20px; flex-wrap: wrap; }
+.hp { font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; }
+
+h2 { font-size: 19px; font-weight: 700; color: var(--white); margin: 40px 0 12px; display: flex; align-items: center; gap: 10px; }
+h2 .h2-num { font-family: var(--mono); font-size: 12px; color: var(--dim); font-weight: 400; }
+h3 { font-size: 14px; font-weight: 700; color: var(--white); margin: 24px 0 8px; text-transform: uppercase; letter-spacing: 0.07em; }
+h4 { font-size: 12px; font-weight: 600; color: var(--dim); margin: 16px 0 6px; text-transform: uppercase; letter-spacing: 0.08em; }
+p { color: var(--dim); margin-bottom: 10px; }
+strong { color: var(--body); font-weight: 600; }
+a { color: var(--gold-l); text-decoration: none; }
+
+/* ── DATASET CARDS ── */
+.ds-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 18px 0; }
+.ds-card { border-radius: 10px; overflow: hidden; border: 1px solid var(--rule); transition: border-color 0.15s; }
+.ds-card:hover { border-color: var(--rule2); }
+.ds-card-head { padding: 14px 18px 12px; }
+.dc-name { font-size: 14px; font-weight: 700; color: var(--white); margin-bottom: 2px; }
+.dc-size { font-family: var(--mono); font-size: 10px; font-weight: 500; }
+.dc-verdict { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 2px 8px; border-radius: 3px; display: inline-block; margin-top: 6px; }
+.v-use { background: rgba(90,171,122,0.15); color: var(--sage-l); border: 1px solid rgba(90,171,122,0.3); }
+.v-partial { background: rgba(212,168,67,0.12); color: var(--gold-l); border: 1px solid rgba(212,168,67,0.25); }
+.v-skip { background: rgba(212,98,74,0.1); color: var(--rust-l); border: 1px solid rgba(212,98,74,0.2); }
+.ds-card-body { padding: 12px 18px 14px; background: var(--ink2); border-top: 1px solid var(--rule); font-size: 12px; color: var(--dim); line-height: 1.65; }
+.ds-card-body strong { display: block; margin-bottom: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* ── PRIORITY PILLS FULL WIDTH ── */
+.ds-full { border-radius: 10px; border: 1px solid var(--rule); margin: 12px 0; overflow: hidden; }
+.ds-full-head { padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; }
+.ds-full-body { padding: 12px 20px 14px; background: var(--ink2); border-top: 1px solid var(--rule); font-size: 12px; color: var(--dim); line-height: 1.7; }
+
+/* ── MEMORY BARS ── */
+.mem-calc { background: var(--ink3); border: 1px solid var(--rule2); border-radius: 10px; padding: 20px 22px; margin: 16px 0; }
+.mem-title { font-size: 12px; font-weight: 700; color: var(--white); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.07em; }
+.mem-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.mem-label { font-size: 12px; color: var(--dim); flex: 1; min-width: 0; }
+.mem-bar-wrap { width: 160px; flex-shrink: 0; height: 6px; background: var(--ink); border-radius: 3px; overflow: hidden; }
+.mem-bar-fill { height: 100%; border-radius: 3px; }
+.mem-val { font-family: var(--mono); font-size: 11px; font-weight: 500; width: 52px; text-align: right; flex-shrink: 0; }
+.mem-total { border-top: 1px solid var(--rule); padding-top: 10px; margin-top: 4px; display: flex; justify-content: space-between; font-size: 13px; }
+.mem-total-label { font-weight: 700; color: var(--body); }
+
+/* ── CODE BLOCKS ── */
+.code-block { margin: 14px 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--rule2); }
+.cb-header { background: var(--ink3); padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--rule); }
+.cb-file { font-family: var(--mono); font-size: 11px; color: var(--dim); }
+.cb-tag { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 8px; border-radius: 3px; background: rgba(212,168,67,0.12); color: var(--gold-l); border: 1px solid rgba(212,168,67,0.2); }
+pre { font-family: var(--mono); font-size: 11.5px; background: #080706; padding: 18px 20px; overflow-x: auto; line-height: 1.85; color: #c8bfb0; margin: 0; }
+.k { color: #b084d4; } .fn { color: #6ab4e8; } .s { color: #88c06a; }
+.n { color: #e8c06a; } .c { color: #4a4540; font-style: italic; }
+.cls { color: #e87060; } .op { color: #60b8d4; }
+code { font-family: var(--mono); font-size: 11px; background: rgba(212,168,67,0.1); color: var(--gold-l); padding: 1px 6px; border-radius: 3px; }
+
+/* ── CALLOUTS ── */
+.call { border-radius: 8px; padding: 13px 17px; margin: 14px 0; display: flex; gap: 11px; align-items: flex-start; }
+.call-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+.call-body { font-size: 12.5px; line-height: 1.7; }
+.call-body strong { font-weight: 700; display: block; margin-bottom: 2px; }
+.c-gold { background: rgba(212,168,67,0.07); border: 1px solid rgba(212,168,67,0.2); color: var(--gold-l); }
+.c-sage { background: rgba(90,171,122,0.07); border: 1px solid rgba(90,171,122,0.2); color: var(--sage-l); }
+.c-rust { background: rgba(212,98,74,0.07); border: 1px solid rgba(212,98,74,0.2); color: var(--rust-l); }
+.c-sky { background: rgba(74,144,212,0.07); border: 1px solid rgba(74,144,212,0.2); color: var(--sky-l); }
+
+/* ── PIPELINE FLOW ── */
+.pipe { display: flex; gap: 0; margin: 20px 0; overflow-x: auto; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
+.pipe-s { flex: 1; min-width: 110px; padding: 14px 12px; background: var(--ink2); border-right: 1px solid var(--rule); position: relative; }
+.pipe-s:last-child { border-right: none; }
+.pipe-s:not(:last-child)::after { content: '→'; position: absolute; right: -9px; top: 50%; transform: translateY(-50%); font-size: 14px; color: var(--dim); z-index: 2; background: var(--ink2); padding: 0 1px; }
+.ps-num { font-family: var(--mono); font-size: 9px; color: var(--dim); margin-bottom: 4px; }
+.ps-title { font-size: 11px; font-weight: 700; color: var(--white); margin-bottom: 4px; }
+.ps-hw { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 3px; display: inline-block; }
+.hw-mlx { background: rgba(90,171,122,0.12); color: var(--sage-l); border: 1px solid rgba(90,171,122,0.2); }
+.hw-ollama { background: rgba(212,168,67,0.12); color: var(--gold-l); border: 1px solid rgba(212,168,67,0.2); }
+.hw-raft { background: rgba(138,109,212,0.12); color: var(--violet-l); border: 1px solid rgba(138,109,212,0.2); }
+
+/* ── TABLES ── */
+table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 14px 0; }
+th { background: var(--ink3); color: var(--dim); font-size: 10px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; padding: 8px 12px; border: 1px solid var(--rule); text-align: left; }
+td { padding: 8px 12px; border: 1px solid var(--rule); color: var(--dim); vertical-align: middle; line-height: 1.5; }
+tr:hover td { background: rgba(255,255,255,0.012); }
+td:first-child { color: var(--body); font-weight: 600; }
+.ok { color: var(--sage); font-weight: 700; }
+.warn { color: var(--gold); font-weight: 700; }
+.no { color: var(--rust); font-weight: 700; }
+
+/* ── STEP FLOW ── */
+.steps { counter-reset: step-counter; margin: 20px 0; }
+.step { counter-increment: step-counter; display: flex; gap: 16px; margin-bottom: 28px; }
+.step::before { content: counter(step-counter, decimal-leading-zero); font-family: var(--mono); font-size: 11px; font-weight: 500; color: var(--gold); background: rgba(212,168,67,0.08); border: 1px solid rgba(212,168,67,0.2); border-radius: 6px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+.step-content .step-title { font-size: 14px; font-weight: 700; color: var(--white); margin-bottom: 6px; }
+.step-content p { font-size: 13px; margin-bottom: 8px; }
+
+/* ── TIMELINE ── */
+.tl { position: relative; padding-left: 22px; }
+.tl::before { content: ''; position: absolute; left: 7px; top: 6px; bottom: 6px; width: 1px; background: var(--rule2); }
+.tl-item { position: relative; margin-bottom: 22px; }
+.tl-item::before { content: ''; position: absolute; left: -18px; top: 6px; width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid var(--gold); background: var(--ink); }
+.tl-day { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); margin-bottom: 3px; }
+.tl-title { font-size: 13px; font-weight: 700; color: var(--white); margin-bottom: 4px; }
+.tl-desc { font-size: 12px; color: var(--dim); line-height: 1.65; }
+
+/* ── GRID ── */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+/* ── STAT BOXES ── */
+.stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 16px 0; }
+.stat { background: var(--ink3); border: 1px solid var(--rule); border-radius: 8px; padding: 14px; text-align: center; }
+.stat-val { font-size: 20px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
+.stat-label { font-size: 10px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.07em; }
+
+/* ── DIVIDERS ── */
+.divider { height: 1px; background: var(--rule); margin: 36px 0; }
+
+@media(max-width:700px) {
+  .ds-grid,.g2,.g3,.stat-row { grid-template-columns: 1fr; }
+  .pipe { flex-direction: column; }
+  .page { padding: 32px 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-brand">Local Pipeline</div>
+  <div class="tab active" onclick="show('datasets')">📦 Datasets</div>
+  <div class="tab" onclick="show('memory')">🍎 Memory Plan</div>
+  <div class="tab" onclick="show('pipeline')">⚙ Pipeline</div>
+  <div class="tab" onclick="show('env')">🔧 Environment</div>
+  <div class="tab" onclick="show('data-code')">📝 Data Code</div>
+  <div class="tab" onclick="show('teacher')">🤖 Qwen Teacher</div>
+  <div class="tab" onclick="show('sft')">🎯 SFT Training</div>
+  <div class="tab" onclick="show('raft')">⚡ RAFT (RL)</div>
+  <div class="tab" onclick="show('eval')">📊 Eval</div>
+</div>
+
+<!-- ══════════════════════════════════════ DATASETS -->
+<div id="datasets" class="page active">
+  <div class="hero">
+    <div class="hero-label">Dataset Research</div>
+    <h1>All 13 Datasets<br><em>Analysed, Ranked, Mapped</em></h1>
+    <p>Every dataset you found, researched and classified by what it actually contains, how many usable examples exist after quality filtering, and exactly which phase of the OMEGA pipeline it feeds into.</p>
+    <div class="hero-pills">
+      <span class="hp" style="background:rgba(90,171,122,0.12);border:1px solid rgba(90,171,122,0.25);color:var(--sage-l)">7 Use</span>
+      <span class="hp" style="background:rgba(212,168,67,0.12);border:1px solid rgba(212,168,67,0.25);color:var(--gold-l)">3 Partial</span>
+      <span class="hp" style="background:rgba(212,98,74,0.1);border:1px solid rgba(212,98,74,0.2);color:var(--rust-l)">3 Skip</span>
+    </div>
+  </div>
+
+  <h2><span class="h2-num">A</span> SFT & Reasoning Training Datasets</h2>
+
+  <!-- MetaMathQA -->
+  <div class="ds-full" style="border-color:rgba(90,171,122,0.25)">
+    <div class="ds-full-head" style="background:rgba(90,171,122,0.07)">
+      <div>
+        <div style="font-size:15px;font-weight:700;color:var(--white)">MetaMathQA</div>
+        <div style="font-size:11px;color:var(--dim);font-family:var(--mono)">395,000 examples · math-genie/MetaMathQA</div>
+      </div>
+      <div>
+        <span class="dc-verdict v-use">✓ PRIMARY — Use this first</span>
+        <span style="font-size:11px;font-weight:700;color:var(--gold);margin-left:8px">⭐ Best SFT dataset</span>
+      </div>
+    </div>
+    <div class="ds-full-body">
+      <strong style="color:var(--sage-l);font-size:12px">What it is:</strong> Mathematical Reasoning Augmented Training dataset. Takes GSM8K and MATH problems and reformulates each one 3–7 different ways: forward reasoning, backward reasoning, rephrased versions, and FOBAR (find-the-other-answer variants). Every example has a complete step-by-step solution.<br><br>
+      <strong style="color:var(--sage-l);font-size:12px">Why it's the best for your task:</strong> You don't just get one path to the answer — you get multiple problem formulations per concept. This forces the model to learn the <em>reasoning pattern</em>, not just memorise a specific problem's solution path. GSM8K accuracy jumps are consistently reported at +8-15% over GSM8K-only SFT when MetaMathQA is used.<br><br>
+      <strong style="color:var(--sage-l);font-size:12px">How to use:</strong> Sample 30,000 examples stratified across all subtypes (GSM_MATH, GSM_ART, GSM_Rephrased, GSM_SV, MATH_CoT, MATH_Rephrased). Sort by difficulty for curriculum. This alone will be your primary SFT dataset.
+    </div>
+  </div>
+
+  <!-- Orca-Math-200K -->
+  <div class="ds-full" style="border-color:rgba(90,171,122,0.25)">
+    <div class="ds-full-head" style="background:rgba(90,171,122,0.07)">
+      <div>
+        <div style="font-size:15px;font-weight:700;color:var(--white)">Orca-Math-200K</div>
+        <div style="font-size:11px;color:var(--dim);font-family:var(--mono)">200,000 examples · microsoft/orca-math-word-problems-200k</div>
+      </div>
+      <span class="dc-verdict v-use">✓ Use — 10K curated sample</span>
+    </div>
+    <div class="ds-full-body">
+      <strong style="color:var(--sage-l);font-size:12px">What it is:</strong> Microsoft Research dataset of 200K word problems with GPT-4-Turbo generated solutions. High-quality, diverse problem types — rate/ratio, percentage, geometry, mixture, age problems. Solutions are detailed, multi-step, well-structured.<br><br>
+      <strong style="color:var(--sage-l);font-size:12px">Why to use it:</strong> The GPT-4 solutions are significantly more coherent than many open-source math datasets. Problem variety is high — many problem types GSM8K doesn't cover. Complements MetaMathQA well since it covers different linguistic styles.<br><br>
+      <strong style="color:var(--sage-l);font-size:12px">How to use:</strong> Sample 10,000 examples. Filter by solution length (>150 chars). This adds problem-type diversity to your SFT training set.
+    </div>
+  </div>
+
+  <div class="ds-grid">
+    <!-- GSM8K -->
+    <div class="ds-card" style="border-color:rgba(90,171,122,0.2)">
+      <div class="ds-card-head" style="background:rgba(90,171,122,0.06)">
+        <div class="dc-name">GSM8K (train)</div>
+        <div class="dc-size" style="color:var(--sage)">7,473 problems · openai/gsm8k</div>
+        <span class="dc-verdict v-use">✓ Use all of it</span>
+      </div>
+      <div class="ds-card-body">
+        <strong>Role: Core SFT + ORM baseline</strong>
+        The benchmark dataset itself. Every training example here directly improves the GSM8K test score (same distribution). Integer answers enable the cleanest possible rule-based ORM — no neural reward model needed, no false positives. Use all 7,473 train examples. Already has built-in step reasoning in the answer field (split on "####"). This is your ground truth for the ORM reward during RAFT.
+      </div>
+    </div>
+
+    <!-- Open-CoT -->
+    <div class="ds-card" style="border-color:rgba(212,168,67,0.2)">
+      <div class="ds-card-head" style="background:rgba(212,168,67,0.05)">
+        <div class="dc-name">Open-CoT</div>
+        <div class="dc-size" style="color:var(--gold)">Varies by subset · kaist-ai/open-cot</div>
+        <span class="dc-verdict v-partial">⚡ Use select subsets</span>
+      </div>
+      <div class="ds-card-body">
+        <strong>Role: Reasoning format diversity</strong>
+        Collection of chain-of-thought demonstrations from various sources. Quality is inconsistent — some subsets are excellent (GSM8K CoT, MATH CoT), others are low quality. Use only: gsm8k_cot, math_cot, and strategyqa_cot subsets. The StrategyQA CoT subset is valuable — it's your best training signal for StrategyQA benchmark transfer since no other provided dataset covers multi-hop reasoning.
+      </div>
+    </div>
+
+    <!-- HotpotQA -->
+    <div class="ds-card" style="border-color:rgba(74,144,212,0.2)">
+      <div class="ds-card-head" style="background:rgba(74,144,212,0.05)">
+        <div class="dc-name">HotpotQA</div>
+        <div class="dc-size" style="color:var(--sky)">90,447 train · hotpot_qa</div>
+        <span class="dc-verdict v-partial">⚡ 5K sample only</span>
+      </div>
+      <div class="ds-card-body">
+        <strong>Role: Multi-hop reasoning for StrategyQA</strong>
+        Multi-step Wikipedia question answering requiring 2+ reasoning hops. StrategyQA (your benchmark) is a binary yes/no multi-hop dataset. HotpotQA is the best available proxy for training multi-hop reasoning transfer. Sample 5,000 examples with supporting facts. Convert to CoT format: "Fact 1... Fact 2... Therefore: [answer]". This is how your model learns to chain evidence — critical for StrategyQA.
+      </div>
+    </div>
+
+    <!-- UltraInteract -->
+    <div class="ds-card" style="border-color:rgba(138,109,212,0.2)">
+      <div class="ds-card-head" style="background:rgba(138,109,212,0.05)">
+        <div class="dc-name">UltraInteract</div>
+        <div class="dc-size" style="color:var(--violet)">Large · openbmb/UltraInteract_sft</div>
+        <span class="dc-verdict v-partial">⚡ Math subset only</span>
+      </div>
+      <div class="ds-card-body">
+        <strong>Role: Complex multi-step SFT</strong>
+        Multi-turn reasoning traces with tree-structured search. Contains math, coding, and logic problem-solving interactions. Use only the "math" task subset. These examples tend to be harder problems with more elaborate reasoning chains — useful for the "hard" tier of your curriculum. Sample 3,000 math examples. The multi-turn structure shows self-correction naturally.
+      </div>
+    </div>
+
+    <!-- FLAN -->
+    <div class="ds-card" style="border-color:rgba(58,171,173,0.2)">
+      <div class="ds-card-head" style="background:rgba(58,171,173,0.05)">
+        <div class="dc-name">FLAN subset</div>
+        <div class="dc-size" style="color:var(--teal)">Massive · Muennighoff/flan</div>
+        <span class="dc-verdict v-skip">✗ Skip for this project</span>
+      </div>
+      <div class="ds-card-body">
+        <strong>Role: General instruction — not needed</strong>
+        FLAN is an instruction-tuning mega-dataset covering hundreds of NLP tasks. Gemma 4 E4B is already instruction-tuned. Adding FLAN will dilute your math/reasoning focus and potentially hurt GSM8K and StrategyQA scores by shifting the model toward generic instruction following. MMLU doesn't need FLAN either — its knowledge comes from pretraining. Skip this entirely.
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <h2><span class="h2-num">B</span> Process Reward Model Datasets</h2>
+
+  <div class="ds-grid">
+    <div class="ds-card" style="border-color:rgba(90,171,122,0.25)">
+      <div class="ds-card-head" style="background:rgba(90,171,122,0.07)">
+        <div class="dc-name">Math-Shepherd</div>
+        <div class="dc-size" style="color:var(--sage)">~434K steps · peiyi9979/math-shepherd</div>
+        <span class="dc-verdict v-use">✓ Primary PRM data</span>
+      </div>
+      <div class="ds-card-body">
+        <strong>Role: Auto-labeled step quality scores</strong>
+        Step-level MC-estimated quality labels, no human annotation. Each entry has: question, solution steps, step-level hard/soft completion scores. Exactly what Math-Shepherd paper describes — run N completions from each step prefix, estimate correctness probability. <strong>Use the 'hard' label field</strong> (binary 0/1 per step). Sample 50K step-level examples for PRM training. This is the most practical PRM dataset for local use.
+      </div>
+    </div>
+
+    <div class="ds-card" style="border-color:rgba(212,168,67,0.2)">
+      <div class="ds-card-head" style="background:rgba(212,168,67,0.05)">
+        <div class="dc-name">PRM800K</div>
+        <div class="dc-size" style="color:var(--gold)">~800K labels · openai/prm800k</div>
+        <span class="dc-verdict v-partial">⚡ Use 10K for validation only</span>
+      </div>
+      <div class="ds-card-body">
+        <strong>Role: Gold-standard PRM validation</strong>
+        OpenAI's human-labelled step quality dataset — the ground truth PRM data. 800K human labels are high quality but the full dataset is enormous and loading it locally is slow. Use 10K examples to <em>validate</em> your Math-Shepherd trained PRM — check if the two agree. Do not train primarily on PRM800K; Math-Shepherd is sufficient and much faster to work with.
+      </div>
+    </div>
+
+    <div class="ds-card" style="border-color:rgba(212,98,74,0.15)">
+      <div class="ds-card-head" style="background:rgba(212,98,74,0.04)">
+        <div class="dc-name">SciBench</div>
+        <div class="dc-size" style="color:var(--rust)">~700 problems · xw27/scibench</div>
+        <span class="dc-verdict v-skip">✗ Skip — eval only</span>
+      </div>
+      <div class="ds-card-body">
+        <strong>Role: Science benchmark — not training data</strong>
+        College-level physics, chemistry, math problems from textbooks. Too hard and too small (700 problems) to train on meaningfully. The format doesn't match your benchmark targets. If you want to test generalization after training, it's interesting — but don't include in training. Focus stays on GSM8K, MMLU, StrategyQA.
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <h2><span class="h2-num">C</span> DPO / Preference Datasets</h2>
+
+  <div class="ds-grid">
+    <div class="ds-card" style="border-color:rgba(90,171,122,0.2)">
+      <div class="ds-card-head" style="background:rgba(90,171,122,0.06)">
+        <div class="dc-name">GSM8k-Scriven</div>
+        <div class="dc-size" style="color:var(--sage)">~7K pairs · Likely custom/small</div>
+        <span class="dc-verdict v-use">✓ Use for RAFT scoring</span>
+      </div>
+      <div class="ds-card-body">
+        <strong>Role: Verified correct/incorrect solution pairs</strong>
+        GSM8K paired with human-written (scriven = handwritten) solutions. Most valuable as a <em>verification source</em> — use it to cross-check your rule-based ORM extraction. Also provides alternative solution paths for the same problems, which expands diversity. Good for RAFT: provides pairs of (correct solution, incorrect solution) to train the preference signal directly.
+      </div>
+    </div>
+
+    <div class="ds-card" style="border-color:rgba(212,98,74,0.15)">
+      <div class="ds-card-head" style="background:rgba(212,98,74,0.04)">
+        <div class="dc-name">HelpSteer2</div>
+        <div class="dc-size" style="color:var(--rust)">~21K · nvidia/HelpSteer2</div>
+        <span class="dc-verdict v-skip">✗ Skip entirely</span>
+      </div>
+      <div class="ds-card-body">
+        <strong>Role: Helpfulness alignment — not relevant</strong>
+        NVIDIA's human-rated helpfulness dataset. Ratings cover coherence, correctness, complexity, verbosity, and helpfulness across general tasks. This is designed for general RLHF alignment, not math reasoning. Your task is specifically reasoning improvement. Including this would introduce a misaligned training signal that may reduce mathematical reasoning focus.
+      </div>
+    </div>
+
+    <div class="ds-card" style="border-color:rgba(212,98,74,0.15)">
+      <div class="ds-card-head" style="background:rgba(212,98,74,0.04)">
+        <div class="dc-name">Skywork-Reward-Data</div>
+        <div class="dc-size" style="color:var(--rust)">Various · Skywork/Skywork-Reward-Data</div>
+        <span class="dc-verdict v-skip">✗ Skip — generic RM</span>
+      </div>
+      <div class="ds-card-body">
+        <strong>Role: General reward model training — misaligned</strong>
+        A collection of instruction-following preference data aggregated from various sources. Designed for training general reward models, not domain-specific reasoning RMs. Using this for math reasoning preference learning would pollute the signal. Your RAFT approach uses rule-based ORM (exact answer matching) which is more accurate than any learned RM for math.
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <h2><span class="h2-num">D</span> Final Dataset Decision — What You'll Actually Use</h2>
+
+  <table>
+    <tr><th>Dataset</th><th>Phase</th><th>Samples</th><th>Purpose</th><th>Priority</th></tr>
+    <tr><td>MetaMathQA</td><td>SFT</td><td>30,000</td><td>Primary CoT math training</td><td class="ok">⭐ Critical</td></tr>
+    <tr><td>GSM8K train</td><td>SFT + RAFT ORM</td><td>7,473 all</td><td>Core math + rule-based reward signal</td><td class="ok">⭐ Critical</td></tr>
+    <tr><td>Orca-Math-200K</td><td>SFT</td><td>10,000</td><td>Problem diversity, GPT-4 quality solutions</td><td class="ok">High</td></tr>
+    <tr><td>HotpotQA</td><td>SFT</td><td>5,000</td><td>Multi-hop transfer → StrategyQA</td><td class="ok">High</td></tr>
+    <tr><td>Open-CoT</td><td>SFT</td><td>3,000</td><td>StrategyQA CoT subset specifically</td><td class="warn">Medium</td></tr>
+    <tr><td>UltraInteract</td><td>SFT (hard tier)</td><td>3,000</td><td>Hard math with self-correction traces</td><td class="warn">Medium</td></tr>
+    <tr><td>Math-Shepherd</td><td>PRM training</td><td>50,000 steps</td><td>Auto-labeled step quality for PRM</td><td class="ok">High</td></tr>
+    <tr><td>PRM800K</td><td>PRM validation</td><td>10,000</td><td>Validate Math-Shepherd PRM quality</td><td class="warn">Validation only</td></tr>
+    <tr><td>GSM8k-Scriven</td><td>RAFT pairs</td><td>All</td><td>Preference pairs for RAFT scoring</td><td class="warn">Medium</td></tr>
+    <tr><td>FLAN</td><td>—</td><td>0</td><td>Skip</td><td class="no">Skip</td></tr>
+    <tr><td>HelpSteer2</td><td>—</td><td>0</td><td>Skip</td><td class="no">Skip</td></tr>
+    <tr><td>Skywork-Reward</td><td>—</td><td>0</td><td>Skip</td><td class="no">Skip</td></tr>
+    <tr><td>SciBench</td><td>—</td><td>0</td><td>Skip</td><td class="no">Skip</td></tr>
+  </table>
+
+  <div class="call c-sage">
+    <div class="call-icon">💡</div>
+    <div class="call-body"><strong>Total SFT training set: ~58,473 raw → ~30,000 after quality filtering</strong> MetaMathQA (30K) + GSM8K (7.5K) + Orca-Math (10K) + HotpotQA (5K) + Open-CoT (3K) + UltraInteract (3K) = 58,473. After Qwen 14B quality filtering, expect to keep ~30,000. This is your goldilocks zone — enough diversity, not so much that training takes weeks locally.</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ MEMORY PLAN -->
+<div id="memory" class="page">
+  <div class="hero">
+    <div class="hero-label">Hardware Analysis</div>
+    <h1>M4 Pro 24GB<br><em>Memory Budget for Every Phase</em></h1>
+    <p>24GB unified memory shared between CPU and GPU. The key constraint is never exceeding ~20GB active usage (leaving 4GB for macOS and browser). Here's exactly how each phase fits.</p>
+  </div>
+
+  <h2>The Golden Rule: Sequential, Not Simultaneous</h2>
+  <p>The reason everything fits in 24GB locally is that <strong>Qwen 14B (Ollama) and Gemma 4 E4B (MLX training) are NEVER running at the same time.</strong> Qwen runs during data prep and curriculum scoring. Then you quit Ollama, free ~9GB, and MLX training starts. This sequential discipline is everything.</p>
+
+  <div class="mem-calc">
+    <div class="mem-title">Phase 0 — Data Prep with Qwen 14B (Ollama)</div>
+    <div class="mem-row"><span class="mem-label">Qwen 14B Q4_K_M (Ollama)</span><div class="mem-bar-wrap"><div class="mem-bar-fill" style="width:80%;background:var(--gold)"></div></div><span class="mem-val" style="color:var(--gold)">~9.0 GB</span></div>
+    <div class="mem-row"><span class="mem-label">Python + HuggingFace datasets</span><div class="mem-bar-wrap"><div class="mem-bar-fill" style="width:15%;background:var(--sky)"></div></div><span class="mem-val" style="color:var(--sky)">~1.5 GB</span></div>
+    <div class="mem-row"><span class="mem-label">macOS + browser + other</span><div class="mem-bar-wrap"><div class="mem-bar-fill" style="width:30%;background:var(--dim)"></div></div><span class="mem-val" style="color:var(--dim)">~3.5 GB</span></div>
+    <div class="mem-row"><span class="mem-label">Buffer / headroom</span><div class="mem-bar-wrap"><div class="mem-bar-fill" style="width:10%;background:var(--sage)"></div></div><span class="mem-val" style="color:var(--sage)">~10 GB free</span></div>
+    <div class="mem-total"><span class="mem-total-label">Total Active</span><span style="color:var(--sage);font-weight:700;font-family:var(--mono)">~14 GB ✓ Comfortable</span></div>
+  </div>
+
+  <div class="mem-calc" style="margin-top:12px">
+    <div class="mem-title">Phase 1 — SFT Training (MLX-LM LoRA, Ollama OFF)</div>
+    <div class="mem-row"><span class="mem-label">Gemma 4 E4B weights (bfloat16)</span><div class="mem-bar-wrap"><div class="mem-bar-fill" style="width:67%;background:var(--violet)"></div></div><span class="mem-val" style="color:var(--violet)">~8.0 GB</span></div>
+    <div class="mem-row"><span class="mem-label">LoRA adapters (rank 32)</span><div class="mem-bar-wrap"><div class="mem-bar-fill" style="width:2%;background:var(--sage)"></div></div><span class="mem-val" style="color:var(--sage)">~0.2 GB</span></div>
+    <div class="mem-row"><span class="mem-label">Optimizer states (AdamW)</span><div class="mem-bar-wrap"><div class="mem-bar-fill" style="width:25%;background:var(--gold)"></div></div><span class="mem-val" style="color:var(--gold)">~3.0 GB</span></div>
+    <div class="mem-row"><span class="mem-label">Activations (batch=1, seq=512)</span><div class="mem-bar-wrap"><div class="mem-bar-fill" style="width:17%;background:var(--rust)"></div></div><span class="mem-val" style="color:var(--rust)">~2.0 GB</span></div>
+    <div class="mem-row"><span class="mem-label">macOS system overhead</span><div class="mem-bar-wrap"><div class="mem-bar-fill" style="width:25%;background:var(--dim)"></div></div><span class="mem-val" style="color:var(--dim)">~3.0 GB</span></div>
+    <div class="mem-total"><span class="mem-total-label">Total SFT</span><span style="color:var(--sage);font-weight:700;font-family:var(--mono)">~16.2 GB ✓ Fits</span></div>
+  </div>
+
+  <div class="mem-calc" style="margin-top:12px">
+    <div class="mem-title">Phase 2 — RAFT Local (MLX-LM, Ollama OFF)</div>
+    <div class="mem-row"><span class="mem-label">Gemma 4 E4B (inference, K=4 samples)</span><div class="mem-bar-wrap"><div class="mem-bar-fill" style="width:67%;background:var(--violet)"></div></div><span class="mem-val" style="color:var(--violet)">~8.0 GB</span></div>
+    <div class="mem-row"><span class="mem-label">K=4 generation buffers (sequential)</span><div class="mem-bar-wrap"><div class="mem-bar-fill" style="width:17%;background:var(--gold)"></div></div><span class="mem-val" style="color:var(--gold)">~2.0 GB</span></div>
+    <div class="mem-row"><span class="mem-label">SFT fine-tune on selected examples</span><div class="mem-bar-wrap"><div class="mem-bar-fill" style="width:33%;background:var(--rust)"></div></div><span class="mem-val" style="color:var(--rust)">~4.0 GB</span></div>
+    <div class="mem-row"><span class="mem-label">macOS overhead</span><div class="mem-bar-wrap"><div class="mem-bar-fill" style="width:25%;background:var(--dim)"></div></div><span class="mem-val" style="color:var(--dim)">~3.0 GB</span></div>
+    <div class="mem-total"><span class="mem-total-label">Total RAFT</span><span style="color:var(--sage);font-weight:700;font-family:var(--mono)">~17 GB ✓ Fits</span></div>
+  </div>
+
+  <div class="call c-rust" style="margin-top:20px">
+    <div class="call-icon">🚫</div>
+    <div class="call-body"><strong>Full GRPO still doesn't fit locally — but RAFT replaces it</strong> GRPO needs 2× model copies (policy + reference) = 16GB just for weights, plus sampling buffers. RAFT achieves the same RL-like improvement: generate K=4 samples, score with rule-based ORM, fine-tune on winners. Memory: just one model loaded. The paper (RAFT, 2023) showed RAFT matches PPO-level performance with far less complexity. This is your local RL substitute.</div>
+  </div>
+
+  <h2>Ollama Qwen 14B Memory Notes</h2>
+  <table>
+    <tr><th>Quantization</th><th>Memory Used</th><th>Quality</th><th>Speed on M4 Pro</th><th>Verdict</th></tr>
+    <tr><td>Q2_K</td><td>~5.0 GB</td><td>Degraded</td><td>Very fast</td><td class="warn">Too lossy</td></tr>
+    <tr><td>Q4_K_M</td><td>~8.7 GB</td><td>Good</td><td>~25 tok/s</td><td class="ok">Use this</td></tr>
+    <tr><td>Q5_K_M</td><td>~10.5 GB</td><td>Better</td><td>~20 tok/s</td><td class="warn">Tight with OS</td></tr>
+    <tr><td>Q8_0</td><td>~15.0 GB</td><td>Near-lossless</td><td>~12 tok/s</td><td class="no">Too large</td></tr>
+  </table>
+  <p>Use <code>ollama pull qwen2.5:14b-instruct-q4_K_M</code> — the Q4_K_M version gives excellent quality at 8.7GB.</p>
+</div>
+
+<!-- ══════════════════════════════════════ PIPELINE -->
+<div id="pipeline" class="page">
+  <div class="hero">
+    <div class="hero-label">Local OMEGA Pipeline</div>
+    <h1>100% Local<br><em>No Cloud Required</em></h1>
+    <p>Five phases, all on your M4 Pro. Qwen 14B via Ollama handles data quality. MLX-LM handles all training. RAFT replaces GRPO as the local RL mechanism.</p>
+  </div>
+
+  <div class="pipe">
+    <div class="pipe-s" style="border-color:rgba(212,168,67,0.3)">
+      <div class="ps-num">PHASE 0</div>
+      <div class="ps-title">Data Forge</div>
+      <div style="font-size:10px;color:var(--dim);margin:4px 0">~1-2 days</div>
+      <span class="ps-hw hw-ollama">Ollama Qwen14B</span>
+    </div>
+    <div class="pipe-s" style="border-color:rgba(138,109,212,0.3)">
+      <div class="ps-num">PHASE 1</div>
+      <div class="ps-title">SFT Warmup</div>
+      <div style="font-size:10px;color:var(--dim);margin:4px 0">~6-8 hrs</div>
+      <span class="ps-hw hw-mlx">MLX LoRA</span>
+    </div>
+    <div class="pipe-s" style="border-color:rgba(90,171,122,0.3)">
+      <div class="ps-num">PHASE 2</div>
+      <div class="ps-title">PRM Build</div>
+      <div style="font-size:10px;color:var(--dim);margin:4px 0">~8 hrs</div>
+      <span class="ps-hw hw-mlx">MLX Inference</span>
+    </div>
+    <div class="pipe-s" style="border-color:rgba(212,98,74,0.3)">
+      <div class="ps-num">PHASE 3</div>
+      <div class="ps-title">RAFT Loops</div>
+      <div style="font-size:10px;color:var(--dim);margin:4px 0">3× iterations</div>
+      <span class="ps-hw hw-raft">RAFT (local RL)</span>
+    </div>
+    <div class="pipe-s">
+      <div class="ps-num">PHASE 4</div>
+      <div class="ps-title">Eval + Demo</div>
+      <div style="font-size:10px;color:var(--dim);margin:4px 0">~2 hrs</div>
+      <span class="ps-hw hw-mlx">MLX Inference</span>
+    </div>
+  </div>
+
+  <div class="tl" style="margin-top:28px">
+    <div class="tl-item">
+      <div class="tl-day">Day 1-2 · Phase 0 — Data Forge with Qwen 14B</div>
+      <div class="tl-title">Download datasets → Qwen quality filter → curriculum sort → build JSONL</div>
+      <div class="tl-desc">Run Ollama with Qwen 14B. For each training example, ask Qwen to rate quality (1-10) and estimate difficulty. Keep examples rated ≥7. Sort by difficulty score. Output: clean_train.jsonl (~30K examples sorted easy→hard).</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-day">Day 3 · Phase 1 — SFT Training (overnight run)</div>
+      <div class="tl-title">mlx_lm.lora on 30K curated examples · LoRA rank 32 · 3 epochs</div>
+      <div class="tl-desc">Start at 8pm, wake up to a trained model. Eval on GSM8K 200-sample mini-set every 500 steps. Expected: baseline ~30% → SFT ~45-50%. Save best checkpoint.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-day">Day 4 · Phase 2 — Build PRM Training Data</div>
+      <div class="tl-title">MC rollouts from SFT model → step labels → PRM training</div>
+      <div class="tl-desc">Use Math-Shepherd dataset (pre-labeled) + your own MC rollouts from the SFT model on 500 GSM8K problems. Train a lightweight PRM (LoRA on SFT model, 1 extra classification head).</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-day">Day 5-6 · Phase 3 — RAFT Iterations (3×)</div>
+      <div class="tl-title">Generate K=4 → ORM score → keep top-1 → SFT on winners → repeat</div>
+      <div class="tl-desc">Each RAFT iteration: generate 4 solutions per problem, score by exact-match ORM, fine-tune on correct ones only. 3 iterations. Each takes ~3-4 hrs. Expected gain: +5-8% additional over SFT alone.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-day">Day 7 · Phase 4 — Benchmark Evaluation + Demo</div>
+      <div class="tl-title">Full GSM8K test · MMLU · StrategyQA · Best-of-N scaling · Gradio demo</div>
+      <div class="tl-desc">Run all three benchmarks. Build the side-by-side Gradio comparison demo. Document self-correction examples if found. Compile ablation table. Write final report.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ ENVIRONMENT -->
+<div id="env" class="page">
+  <div class="hero">
+    <div class="hero-label">Setup</div>
+    <h1>Environment Setup<br><em>Run These First</em></h1>
+    <p>Complete setup from scratch. Two environments: one for MLX training, one for PyTorch utilities. Ollama for Qwen 14B. Everything local, nothing cloud.</p>
+  </div>
+
+  <h2>Step 1 — Install Ollama + Qwen 14B</h2>
+
+  <div class="code-block">
+    <div class="cb-header"><span class="cb-file">terminal</span><span class="cb-tag">bash</span></div>
+    <pre><span class="c"># Install Ollama (macOS native)</span>
+curl -fsSL https://ollama.com/install.sh | sh
+<span class="c"># Or download from ollama.com/download and drag to Applications</span>
+
+<span class="c"># Pull Qwen 14B — Q4_K_M quantization (8.7GB, best local quality)</span>
+ollama pull qwen2.5:14b-instruct-q4_K_M
+
+<span class="c"># Verify it runs</span>
+ollama run qwen2.5:14b-instruct-q4_K_M "Solve 2x + 5 = 13 step by step."
+
+<span class="c"># You should see a detailed step-by-step solution within ~10 seconds
+# Expected: 2x = 13 - 5 = 8, therefore x = 4
+# If it responds correctly, Qwen 14B is working</span>
+
+<span class="c"># Check memory usage while Qwen is running</span>
+sudo powermetrics --sample-count 1 | grep "GPU HW"
+<span class="c"># Should show ~8-9GB GPU memory in use</span></pre>
+  </div>
+
+  <h2>Step 2 — MLX Python Environment</h2>
+
+  <div class="code-block">
+    <div class="cb-header"><span class="cb-file">terminal</span><span class="cb-tag">bash</span></div>
+    <pre><span class="c"># Confirm you're on Apple Silicon</span>
+uname -m  <span class="c"># Must output: arm64</span>
+python3 --version  <span class="c"># Must be 3.10+ (3.11 recommended)</span>
+
+<span class="c"># Install uv — the fastest Python package manager (replaces pip)</span>
+curl -LsSf https://astral.sh/uv/install.sh | sh
+source ~/.bashrc  <span class="c"># or restart terminal</span>
+
+<span class="c"># Create project and environment</span>
+mkdir slm-reasoning && cd slm-reasoning
+uv venv --python 3.11 .venv
+source .venv/bin/activate
+
+<span class="c"># Install MLX stack — Apple-native, fastest on M4</span>
+uv pip install mlx mlx-lm
+
+<span class="c"># Install data pipeline dependencies</span>
+uv pip install datasets transformers huggingface_hub
+uv pip install numpy pandas tqdm rich colorama
+uv pip install requests  <span class="c"># for Ollama API calls</span>
+
+<span class="c"># Install eval tools</span>
+uv pip install gradio  <span class="c"># for the demo</span>
+
+<span class="c"># HuggingFace login</span>
+huggingface-cli login
+<span class="c"># Paste your HF token when prompted
+# Create token at: huggingface.co/settings/tokens</span>
+
+<span class="c"># Accept Gemma license at:
+# huggingface.co/google/gemma-3-4b-it → "Access repository"</span>
+
+<span class="c"># Verify full setup</span>
+python -c "
+import mlx.core as mx
+import mlx_lm
+from datasets import load_dataset
+print('MLX device:', mx.default_device())
+print('MLX version:', mx.__version__)
+print('All imports OK')
+"</pre>
+  </div>
+
+  <h2>Step 3 — Verify Gemma 4 Loads</h2>
+
+  <div class="code-block">
+    <div class="cb-header"><span class="cb-file">terminal</span><span class="cb-tag">bash</span></div>
+    <pre><span class="c"># Quick load test — takes 30-60 seconds first time (downloads 8GB)</span>
+python -c "
+from mlx_lm import load, generate
+import time
+
+print('Loading Gemma 4 E4B...')
+t = time.time()
+model, tok = load('google/gemma-3-4b-it')
+print(f'Loaded in {time.time()-t:.1f}s')
+
+prompt = 'What is 15% of 240? Solve step by step.'
+out = generate(model, tok, prompt, max_tokens=200, verbose=True)
+print('Output:', out)
+"
+<span class="c"># Expected output: loads in ~30s, generates ~15-20 tokens/second
+# Should show step-by-step calculation leading to 36</span></pre>
+  </div>
+
+  <div class="call c-gold">
+    <div class="call-icon">⚡</div>
+    <div class="call-body"><strong>Speed expectation on M4 Pro 20-core GPU</strong> Gemma 4 E4B with MLX generates approximately 18-25 tokens/second during inference. Training (forward + backward pass) is about 3-5× slower — expect ~0.3-0.5 iterations/second during SFT. A 5,000-step training run takes roughly 3-4 hours. This is why you do training runs overnight.</div>
+  </div>
+
+  <h2>Project File Structure — Create This Now</h2>
+
+  <div class="code-block">
+    <div class="cb-header"><span class="cb-file">terminal</span><span class="cb-tag">bash</span></div>
+    <pre>mkdir -p slm-reasoning/{scripts,data/{raw,processed,splits},\
+checkpoints/{baseline_eval,sft,spin,raft},\
+results/{baseline,sft,raft},logs,demo}
+
+<span class="c"># Create essential config file</span>
+cat > config.py << 'EOF'
+<span class="c"># config.py — all paths and constants in one place</span>
+BASE_MODEL     = "google/gemma-3-4b-it"
+QWEN_MODEL     = "qwen2.5:14b-instruct-q4_K_M"  <span class="c"># ollama model name</span>
+OLLAMA_URL     = "http://localhost:11434"
+
+DATA_RAW       = "data/raw"
+DATA_PROCESSED = "data/processed"
+DATA_SPLITS    = "data/splits"
+CKPT_SFT       = "checkpoints/sft"
+CKPT_RAFT      = "checkpoints/raft"
+RESULTS        = "results"
+
+SFT_SAMPLES    = 30_000   <span class="c"># after filtering</span>
+SFT_ITERS      = 5_000
+SFT_LR         = 2e-5
+SFT_BATCH      = 1
+LORA_RANK      = 32
+MAX_SEQ_LEN    = 512
+
+RAFT_K         = 4        <span class="c"># samples per problem</span>
+RAFT_ITERS     = 3        <span class="c"># RAFT loops</span>
+RAFT_LR        = 5e-6
+EOF
+echo "Config created."</pre>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ DATA CODE -->
+<div id="data-code" class="page">
+  <div class="hero">
+    <div class="hero-label">Data Pipeline</div>
+    <h1>Download, Format<br><em>& Build Training Set</em></h1>
+    <p>Complete data pipeline scripts. Downloads all 7 datasets, filters them, formats into unified CoT template, and produces clean JSONL files ready for MLX training.</p>
+  </div>
+
+  <h2>Script 1 — Download All Datasets</h2>
+
+  <div class="code-block">
+    <div class="cb-header"><span class="cb-file">scripts/01_download.py</span><span class="cb-tag">python</span></div>
+    <pre><span class="c">"""Download and verify all training datasets."""</span>
+<span class="k">from</span> datasets <span class="k">import</span> load_dataset
+<span class="k">import</span> json
+<span class="k">from</span> pathlib <span class="k">import</span> Path
+Path(<span class="s">"data/raw"</span>).<span class="fn">mkdir</span>(parents=<span class="k">True</span>, exist_ok=<span class="k">True</span>)
+
+datasets_to_load = [
+    (<span class="s">"gsm8k"</span>,               <span class="s">"main"</span>),
+    (<span class="s">"meta-math/MetaMathQA"</span>,  <span class="k">None</span>),
+    (<span class="s">"microsoft/orca-math-word-problems-200k"</span>, <span class="k">None</span>),
+    (<span class="s">"hotpot_qa"</span>,            <span class="s">"distractor"</span>),
+    (<span class="s">"peiyi9979/math-shepherd"</span>, <span class="k">None</span>),
+]
+
+<span class="k">for</span> name, config <span class="k">in</span> datasets_to_load:
+    <span class="k">try</span>:
+        ds = load_dataset(name, config, cache_dir=<span class="s">"data/raw"</span>, trust_remote_code=<span class="k">True</span>)
+        splits = {k: <span class="fn">len</span>(v) <span class="k">for</span> k, v <span class="k">in</span> ds.items()}
+        print(<span class="s">f"✅ {name}: {splits}"</span>)
+    <span class="k">except Exception as</span> e:
+        print(<span class="s">f"❌ {name}: {e}"</span>)
+
+<span class="c"># Note: UltraInteract and Open-CoT may need specific loading
+# Try: load_dataset("openbmb/UltraInteract_sft", cache_dir="data/raw")
+# Try: load_dataset("kaist-ai/CoT-Collection", cache_dir="data/raw")</span>
+print(<span class="s">"\nAll downloads complete. Check data/raw/ for cache."</span>)</pre>
+  </div>
+
+  <h2>Script 2 — Format Everything to Unified CoT</h2>
+
+  <div class="code-block">
+    <div class="cb-header"><span class="cb-file">scripts/02_format_data.py</span><span class="cb-tag">python</span></div>
+    <pre><span class="c">"""
+Format all datasets → unified CoT JSONL format.
+Output: data/processed/all_formatted.jsonl
+"""</span>
+<span class="k">import</span> json, random, re
+<span class="k">from</span> datasets <span class="k">import</span> load_dataset
+<span class="k">from</span> pathlib <span class="k">import</span> Path
+
+random.seed(<span class="n">42</span>)
+Path(<span class="s">"data/processed"</span>).<span class="fn">mkdir</span>(exist_ok=<span class="k">True</span>)
+
+<span class="c"># ── The universal template every formatter must produce ───────
+# Every example MUST have: prompt, completion, answer, task, source, difficulty
+# completion MUST contain &lt;think&gt;...&lt;/think&gt;&lt;answer&gt;...&lt;/answer&gt;</span>
+
+<span class="k">def</span> <span class="fn">fmt_gsm8k</span>(ex):
+    parts   = ex[<span class="s">"answer"</span>].split(<span class="s">"####"</span>)
+    steps   = parts[<span class="n">0</span>].strip()
+    answer  = parts[<span class="n">1</span>].strip() <span class="k">if</span> <span class="fn">len</span>(parts) > <span class="n">1</span> <span class="k">else</span> <span class="s">""</span>
+    n_words = <span class="fn">len</span>(ex[<span class="s">"question"</span>].split())
+    <span class="k">return</span> {
+        <span class="s">"prompt"</span>: <span class="s">f"Solve step-by-step:\n{ex['question']}"</span>,
+        <span class="s">"completion"</span>: <span class="s">f"&lt;think&gt;\n{steps}\n&lt;/think&gt;\n&lt;answer&gt;{answer}&lt;/answer&gt;"</span>,
+        <span class="s">"answer"</span>: answer, <span class="s">"task"</span>: <span class="s">"math"</span>,
+        <span class="s">"source"</span>: <span class="s">"gsm8k"</span>, <span class="s">"difficulty"</span>: <span class="fn">min</span>(n_words/<span class="n">80</span>, <span class="n">1.0</span>),
+    }
+
+<span class="k">def</span> <span class="fn">fmt_metamath</span>(ex):
+    <span class="c"># MetaMathQA has: query (question), response (full solution)</span>
+    query    = ex.get(<span class="s">"query"</span>, <span class="s">""</span>).strip()
+    response = ex.get(<span class="s">"response"</span>, <span class="s">""</span>).strip()
+    <span class="c"># Extract final answer — usually "The answer is \boxed{X}" or "#### X"</span>
+    ans_m = re.<span class="fn">search</span>(<span class="s">r'(?:The answer is|\\boxed{|####\s*)([^}.\n]+)'</span>, response)
+    answer = ans_m.<span class="fn">group</span>(<span class="n">1</span>).strip() <span class="k">if</span> ans_m <span class="k">else</span> <span class="s">""</span>
+    <span class="c"># Difficulty: longer responses = harder reasoning chain</span>
+    difficulty = <span class="fn">min</span>(<span class="fn">len</span>(response.split()) / <span class="n">300</span>, <span class="n">1.0</span>)
+    <span class="k">return</span> {
+        <span class="s">"prompt"</span>: <span class="s">f"Solve step-by-step:\n{query}"</span>,
+        <span class="s">"completion"</span>: <span class="s">f"&lt;think&gt;\n{response}\n&lt;/think&gt;\n&lt;answer&gt;{answer}&lt;/answer&gt;"</span>,
+        <span class="s">"answer"</span>: answer, <span class="s">"task"</span>: <span class="s">"math"</span>,
+        <span class="s">"source"</span>: <span class="s">"metamath"</span>, <span class="s">"difficulty"</span>: difficulty,
+    }
+
+<span class="k">def</span> <span class="fn">fmt_orca_math</span>(ex):
+    <span class="c"># Orca-Math has: question, answer (full solution with final number)</span>
+    question = ex.get(<span class="s">"question"</span>, <span class="s">""</span>).strip()
+    solution = ex.get(<span class="s">"answer"</span>, <span class="s">""</span>).strip()
+    <span class="c"># Final answer is usually the last number in the solution</span>
+    nums = re.<span class="fn">findall</span>(<span class="s">r'\b\d+\.?\d*\b'</span>, solution)
+    final_ans = nums[<span class="n">-1</span>] <span class="k">if</span> nums <span class="k">else</span> <span class="s">""</span>
+    <span class="k">return</span> {
+        <span class="s">"prompt"</span>: <span class="s">f"Solve step-by-step:\n{question}"</span>,
+        <span class="s">"completion"</span>: <span class="s">f"&lt;think&gt;\n{solution}\n&lt;/think&gt;\n&lt;answer&gt;{final_ans}&lt;/answer&gt;"</span>,
+        <span class="s">"answer"</span>: final_ans, <span class="s">"task"</span>: <span class="s">"math"</span>,
+        <span class="s">"source"</span>: <span class="s">"orca_math"</span>, <span class="s">"difficulty"</span>: <span class="fn">min</span>(<span class="fn">len</span>(solution)/<span class="n">400</span>, <span class="n">1.0</span>),
+    }
+
+<span class="k">def</span> <span class="fn">fmt_hotpotqa</span>(ex):
+    <span class="c"># HotpotQA: question, answer, supporting_facts (list of [title, sent_id])</span>
+    question = ex.get(<span class="s">"question"</span>, <span class="s">""</span>)
+    answer   = ex.get(<span class="s">"answer"</span>, <span class="s">""</span>)
+    <span class="c"># Build reasoning from supporting facts (context contains the actual sentences)</span>
+    context  = ex.get(<span class="s">"context"</span>, {})
+    titles   = context.get(<span class="s">"title"</span>, [])
+    sents    = context.get(<span class="s">"sentences"</span>, [])
+    <span class="c"># Simple: join supporting document titles as reasoning hints</span>
+    reasoning = <span class="s">f"This requires checking multiple sources.\nSources: {', '.join(titles[:3])}.\nBased on these facts: {answer}"</span>
+    <span class="k">return</span> {
+        <span class="s">"prompt"</span>: <span class="s">f"Answer this step-by-step using evidence:\n{question}"</span>,
+        <span class="s">"completion"</span>: <span class="s">f"&lt;think&gt;\n{reasoning}\n&lt;/think&gt;\n&lt;answer&gt;{answer}&lt;/answer&gt;"</span>,
+        <span class="s">"answer"</span>: answer.lower(), <span class="s">"task"</span>: <span class="s">"qa"</span>,
+        <span class="s">"source"</span>: <span class="s">"hotpotqa"</span>, <span class="s">"difficulty"</span>: <span class="n">0.65</span>,
+    }
+
+<span class="c"># ── Load and format each dataset ─────────────────────────────</span>
+all_examples = []
+
+<span class="c"># 1. GSM8K — use ALL training examples</span>
+print(<span class="s">"Formatting GSM8K..."</span>)
+gsm = load_dataset(<span class="s">"gsm8k"</span>, <span class="s">"main"</span>, cache_dir=<span class="s">"data/raw"</span>)
+gsm_formatted = [<span class="fn">fmt_gsm8k</span>(ex) <span class="k">for</span> ex <span class="k">in</span> gsm[<span class="s">"train"</span>]]
+all_examples.extend(gsm_formatted)
+print(<span class="s">f"  → {len(gsm_formatted)} GSM8K examples"</span>)
+
+<span class="c"># 2. MetaMathQA — sample 30K across subtypes</span>
+print(<span class="s">"Formatting MetaMathQA..."</span>)
+meta = load_dataset(<span class="s">"meta-math/MetaMathQA"</span>, cache_dir=<span class="s">"data/raw"</span>)
+meta_formatted = []
+subtypes = {}  <span class="c"># Count by type for stratified sampling</span>
+<span class="k">for</span> ex <span class="k">in</span> meta[<span class="s">"train"</span>]:
+    qtype = ex.get(<span class="s">"type"</span>, <span class="s">"unknown"</span>)
+    subtypes[qtype] = subtypes.get(qtype, [])
+    subtypes[qtype].append(<span class="fn">fmt_metamath</span>(ex))
+
+samples_per_type = <span class="n">5000</span>  <span class="c"># 6 types × 5K = 30K</span>
+<span class="k">for</span> qtype, examples <span class="k">in</span> subtypes.items():
+    sampled = random.<span class="fn">sample</span>(examples, <span class="fn">min</span>(samples_per_type, <span class="fn">len</span>(examples)))
+    meta_formatted.extend(sampled)
+    print(<span class="s">f"  {qtype}: {len(sampled)} samples"</span>)
+
+all_examples.extend(meta_formatted)
+print(<span class="s">f"  → {len(meta_formatted)} MetaMathQA examples"</span>)
+
+<span class="c"># 3. Orca-Math — sample 10K</span>
+print(<span class="s">"Formatting Orca-Math..."</span>)
+orca = load_dataset(<span class="s">"microsoft/orca-math-word-problems-200k"</span>, cache_dir=<span class="s">"data/raw"</span>)
+orca_all = [<span class="fn">fmt_orca_math</span>(ex) <span class="k">for</span> ex <span class="k">in</span> orca[<span class="s">"train"</span>]
+            <span class="k">if</span> <span class="fn">len</span>(ex.get(<span class="s">"answer"</span>,<span class="s">""</span>)) > <span class="n">100</span>]  <span class="c"># Quality filter</span>
+orca_sampled = random.<span class="fn">sample</span>(orca_all, <span class="n">10_000</span>)
+all_examples.extend(orca_sampled)
+print(<span class="s">f"  → {len(orca_sampled)} Orca-Math examples"</span>)
+
+<span class="c"># 4. HotpotQA — 5K sample (for StrategyQA transfer)</span>
+print(<span class="s">"Formatting HotpotQA..."</span>)
+hotpot = load_dataset(<span class="s">"hotpot_qa"</span>, <span class="s">"distractor"</span>, cache_dir=<span class="s">"data/raw"</span>)
+hotpot_formatted = [<span class="fn">fmt_hotpotqa</span>(ex) <span class="k">for</span> ex <span class="k">in</span> hotpot[<span class="s">"train"</span>]]
+hotpot_sampled = random.<span class="fn">sample</span>(hotpot_formatted, <span class="n">5_000</span>)
+all_examples.extend(hotpot_sampled)
+print(<span class="s">f"  → {len(hotpot_sampled)} HotpotQA examples"</span>)
+
+<span class="c"># ── Save raw formatted (before Qwen filtering) ────────────────</span>
+out_path = <span class="s">"data/processed/all_formatted.jsonl"</span>
+<span class="k">with</span> <span class="fn">open</span>(out_path, <span class="s">"w"</span>) <span class="k">as</span> f:
+    <span class="k">for</span> ex <span class="k">in</span> all_examples:
+        f.<span class="fn">write</span>(json.<span class="fn">dumps</span>(ex, ensure_ascii=<span class="k">False</span>) + <span class="s">"\n"</span>)
+
+print(<span class="s">f"\n✅ Total formatted: {len(all_examples)} examples"</span>)
+print(<span class="s">f"Saved to {out_path}"</span>)
+print(<span class="s">"Next: run 03_qwen_filter.py to quality-score with Qwen 14B"</span>)</pre>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ TEACHER -->
+<div id="teacher" class="page">
+  <div class="hero">
+    <div class="hero-label">Qwen 14B Teacher Role</div>
+    <h1>Ollama as<br><em>Curriculum Architect</em></h1>
+    <p>Qwen 14B via Ollama plays three roles: quality judge (filter bad examples), difficulty estimator (order curriculum), and CoT generator (improve weak examples). It runs before any training starts — completely sequential.</p>
+  </div>
+
+  <div class="call c-gold">
+    <div class="call-icon">📐</div>
+    <div class="call-body"><strong>Why Qwen 14B specifically?</strong> Qwen 2.5 14B has exceptional math reasoning benchmarks — it scores ~82% on GSM8K out of the box. This means when it rates a training example as "low quality", it's almost certainly right. Gemma 4 E4B (your student) will be learning from examples that a much stronger math model has validated. This quality signal is the hidden advantage of having Qwen locally.</div>
+  </div>
+
+  <h2>Ollama Python API Setup</h2>
+
+  <div class="code-block">
+    <div class="cb-header"><span class="cb-file">scripts/ollama_client.py</span><span class="cb-tag">python</span></div>
+    <pre><span class="c">"""Reusable Ollama client for Qwen 14B calls."""</span>
+<span class="k">import</span> requests, json, time
+<span class="k">from</span> config <span class="k">import</span> OLLAMA_URL, QWEN_MODEL
+
+<span class="k">def</span> <span class="fn">qwen_chat</span>(prompt: str, temperature: float = <span class="n">0.1</span>,
+              max_tokens: int = <span class="n">256</span>, timeout: int = <span class="n">120</span>) -> str:
+    <span class="cls">"""Send a prompt to Qwen 14B via Ollama and return the response."""</span>
+    payload = {
+        <span class="s">"model"</span>: QWEN_MODEL,
+        <span class="s">"messages"</span>: [{<span class="s">"role"</span>: <span class="s">"user"</span>, <span class="s">"content"</span>: prompt}],
+        <span class="s">"stream"</span>: <span class="k">False</span>,
+        <span class="s">"options"</span>: {<span class="s">"temperature"</span>: temperature, <span class="s">"num_predict"</span>: max_tokens},
+    }
+    <span class="k">try</span>:
+        r = requests.<span class="fn">post</span>(<span class="s">f"{OLLAMA_URL}/api/chat"</span>,
+                          json=payload, timeout=timeout)
+        r.<span class="fn">raise_for_status</span>()
+        <span class="k">return</span> r.<span class="fn">json</span>()[<span class="s">"message"</span>][<span class="s">"content"</span>].strip()
+    <span class="k">except Exception as</span> e:
+        print(<span class="s">f"Ollama error: {e}"</span>)
+        <span class="k">return</span> <span class="s">""</span>
+
+<span class="k">def</span> <span class="fn">qwen_rate_quality</span>(prompt: str, completion: str) -> float:
+    <span class="cls">"""Ask Qwen to rate a training example 1-10 for reasoning quality.
+    Returns float between 0.1 and 1.0."""</span>
+    rating_prompt = <span class="s">f"""You are a math education expert. Rate this math solution for REASONING QUALITY only.
+
+Problem: {prompt[:300]}
+
+Solution (first 400 chars): {completion[:400]}
+
+Rate ONLY the quality of the step-by-step reasoning process (not whether the final answer is correct).
+Consider: Are steps explicit? Is logic sound? Are calculations shown? Is reasoning complete?
+
+Respond with ONLY a single integer 1-10. Nothing else. Just the number."""</span>
+
+    response = <span class="fn">qwen_chat</span>(rating_prompt, temperature=<span class="n">0.0</span>, max_tokens=<span class="n">5</span>)
+    <span class="k">try</span>:
+        score = <span class="fn">int</span>(response.strip()[<span class="n">0</span>])
+        <span class="k">return</span> <span class="fn">max</span>(<span class="n">1</span>, <span class="fn">min</span>(<span class="n">10</span>, score)) / <span class="n">10.0</span>
+    <span class="k">except</span>:
+        <span class="k">return</span> <span class="n">0.5</span>  <span class="c"># default if parse fails</span>
+
+<span class="k">def</span> <span class="fn">qwen_estimate_difficulty</span>(problem: str) -> float:
+    <span class="cls">"""Estimate how hard a problem is for a ~4B parameter model. 0.0=easy, 1.0=hard"""</span>
+    diff_prompt = <span class="s">f"""Rate the difficulty of this math/reasoning problem for a small 4B language model.
+
+Problem: {problem[:250]}
+
+Consider: number of steps needed, mathematical complexity, multi-step reasoning required.
+
+Respond with ONLY a single integer 1-10 (1=trivially easy, 10=extremely hard). Just the number."""</span>
+
+    response = <span class="fn">qwen_chat</span>(diff_prompt, temperature=<span class="n">0.0</span>, max_tokens=<span class="n">5</span>)
+    <span class="k">try</span>:
+        score = <span class="fn">int</span>(response.strip()[<span class="n">0</span>])
+        <span class="k">return</span> <span class="fn">max</span>(<span class="n">1</span>, <span class="fn">min</span>(<span class="n">10</span>, score)) / <span class="n">10.0</span>
+    <span class="k">except</span>:
+        <span class="k">return</span> <span class="n">0.5</span>
+
+<span class="k">def</span> <span class="fn">qwen_improve_cot</span>(problem: str, weak_cot: str, answer: str) -> str:
+    <span class="cls">"""If a CoT is weak (score &lt; 5), ask Qwen to rewrite it better."""</span>
+    improve_prompt = <span class="s">f"""Rewrite this solution to be clearer and more explicit, step by step.
+
+Problem: {problem[:300]}
+Original solution (may be incomplete): {weak_cot[:300]}
+Correct final answer: {answer}
+
+Write a clear, explicit step-by-step solution. Show every calculation.
+Use format:
+Step 1: [action]
+Step 2: [action]
+...
+Therefore: [final answer]"""</span>
+
+    return <span class="fn">qwen_chat</span>(improve_prompt, temperature=<span class="n">0.3</span>, max_tokens=<span class="n">400</span>)</pre>
+  </div>
+
+  <h2>Script 3 — Qwen Quality Filter + Curriculum Sort</h2>
+
+  <div class="code-block">
+    <div class="cb-header"><span class="cb-file">scripts/03_qwen_filter.py</span><span class="cb-tag">python</span></div>
+    <pre><span class="c">"""
+Quality-filter formatted examples using Qwen 14B.
+Rates each example 1-10, estimates difficulty, optionally improves weak CoTs.
+Input:  data/processed/all_formatted.jsonl
+Output: data/splits/train.jsonl (sorted by difficulty, quality >= 6)
+
+Runtime: ~6-8 hours for 55K examples at ~0.5s/example
+Start in morning, check in evening.
+"""</span>
+<span class="k">import</span> json, time, random
+<span class="k">from</span> pathlib <span class="k">import</span> Path
+<span class="k">from</span> ollama_client <span class="k">import</span> qwen_rate_quality, qwen_estimate_difficulty, qwen_improve_cot
+
+Path(<span class="s">"data/splits"</span>).<span class="fn">mkdir</span>(exist_ok=<span class="k">True</span>)
+
+<span class="c"># ── Load all formatted examples ────────────────────────────────</span>
+<span class="k">with</span> <span class="fn">open</span>(<span class="s">"data/processed/all_formatted.jsonl"</span>) <span class="k">as</span> f:
+    all_examples = [json.<span class="fn">loads</span>(l) <span class="k">for</span> l <span class="k">in</span> f]
+
+print(<span class="s">f"Loaded {len(all_examples)} examples for Qwen filtering"</span>)
+print(<span class="s">"Make sure Ollama is running: ollama serve"</span>)
+print(<span class="s">"Make sure Qwen is pulled: ollama pull qwen2.5:14b-instruct-q4_K_M\n"</span>)
+
+<span class="c"># ── Process with progress saving every 500 examples ──────────</span>
+<span class="c"># Critical: save progress so you can resume if interrupted</span>
+progress_file = <span class="s">"data/processed/qwen_progress.jsonl"</span>
+scored = []
+
+<span class="c"># Resume from where we left off</span>
+<span class="k">if</span> Path(progress_file).exists():
+    <span class="k">with</span> <span class="fn">open</span>(progress_file) <span class="k">as</span> f:
+        scored = [json.<span class="fn">loads</span>(l) <span class="k">for</span> l <span class="k">in</span> f]
+    print(<span class="s">f"Resuming from {len(scored)} already processed"</span>)
+
+already_done = {<span class="fn">hash</span>(ex[<span class="s">"prompt"</span>][:50]) <span class="k">for</span> ex <span class="k">in</span> scored}
+remaining    = [ex <span class="k">for</span> ex <span class="k">in</span> all_examples
+               <span class="k">if</span> <span class="fn">hash</span>(ex[<span class="s">"prompt"</span>][:50]) <span class="k">not</span> <span class="k">in</span> already_done]
+
+<span class="k">with</span> <span class="fn">open</span>(progress_file, <span class="s">"a"</span>) <span class="k">as</span> prog_file:
+    <span class="k">for</span> i, ex <span class="k">in</span> <span class="fn">enumerate</span>(remaining):
+        t_start = time.<span class="fn">time</span>()
+
+        <span class="c"># 1. Rate reasoning quality</span>
+        quality = <span class="fn">qwen_rate_quality</span>(ex[<span class="s">"prompt"</span>], ex[<span class="s">"completion"</span>])
+
+        <span class="c"># 2. Estimate difficulty (use existing difficulty if available)</span>
+        <span class="k">if</span> ex.get(<span class="s">"difficulty"</span>, <span class="n">0</span>) == <span class="n">0.5</span>:  <span class="c"># Generic default → get Qwen estimate</span>
+            difficulty = <span class="fn">qwen_estimate_difficulty</span>(ex[<span class="s">"prompt"</span>])
+        <span class="k">else</span>:
+            difficulty = ex[<span class="s">"difficulty"</span>]  <span class="c"># Already computed from length heuristic</span>
+
+        <span class="c"># 3. Optionally improve weak CoTs from good sources</span>
+        improved_cot = ex[<span class="s">"completion"</span>]
+        <span class="k">if</span> quality < <span class="n">0.5</span> <span class="k">and</span> ex[<span class="s">"source"</span>] <span class="k">in</span> [<span class="s">"gsm8k"</span>, <span class="s">"metamath"</span>]:
+            <span class="c"># Problem is good (well-known source) but CoT is weak → improve it</span>
+            better = <span class="fn">qwen_improve_cot</span>(ex[<span class="s">"prompt"</span>], ex[<span class="s">"completion"</span>], ex[<span class="s">"answer"</span>])
+            <span class="k">if</span> better <span class="k">and</span> <span class="fn">len</span>(better) > <span class="n">50</span>:
+                improved_cot = <span class="s">f"&lt;think&gt;\n{better}\n&lt;/think&gt;\n&lt;answer&gt;{ex['answer']}&lt;/answer&gt;"</span>
+                quality = <span class="n">0.75</span>  <span class="c"># Bump quality score after improvement</span>
+
+        result = {**ex,
+                  <span class="s">"quality_score"</span>: quality,
+                  <span class="s">"difficulty"</span>: difficulty,
+                  <span class="s">"completion"</span>: improved_cot}
+        scored.<span class="fn">append</span>(result)
+        prog_file.<span class="fn">write</span>(json.<span class="fn">dumps</span>(result) + <span class="s">"\n"</span>)
+        prog_file.<span class="fn">flush</span>()
+
+        elapsed = time.<span class="fn">time</span>() - t_start
+        <span class="k">if</span> (i+<span class="n">1</span>) % <span class="n">100</span> == <span class="n">0</span>:
+            pct = (i+<span class="n">1</span>) / <span class="fn">len</span>(remaining) * <span class="n">100</span>
+            hrs_left = elapsed * (<span class="fn">len</span>(remaining) - i - <span class="n">1</span>) / <span class="n">3600</span>
+            print(<span class="s">f"[{i+1}/{len(remaining)}] {pct:.0f}% · {hrs_left:.1f}h remaining"</span>)
+
+<span class="c"># ── Filter: keep quality >= 0.6, drop empty answers ──────────</span>
+filtered = [ex <span class="k">for</span> ex <span class="k">in</span> scored
+            <span class="k">if</span> ex[<span class="s">"quality_score"</span>] >= <span class="n">0.6</span>
+            <span class="k">and</span> <span class="fn">len</span>(ex[<span class="s">"answer"</span>].strip()) > <span class="n">0</span>
+            <span class="k">and</span> <span class="s">"&lt;think&gt;"</span> <span class="k">in</span> ex[<span class="s">"completion"</span>]
+            <span class="k">and</span> <span class="s">"&lt;answer&gt;"</span> <span class="k">in</span> ex[<span class="s">"completion"</span>]]
+
+<span class="c"># ── Sort by difficulty (curriculum learning: easy first) ──────</span>
+filtered.sort(key=<span class="k">lambda</span> x: x[<span class="s">"difficulty"</span>])
+
+<span class="c"># Hold out last 500 as internal val set</span>
+train_set = filtered[:len(filtered)-<span class="n">500</span>]
+val_set   = filtered[len(filtered)-<span class="n">500</span>:]
+
+<span class="k">with</span> <span class="fn">open</span>(<span class="s">"data/splits/train.jsonl"</span>, <span class="s">"w"</span>) <span class="k">as</span> f:
+    <span class="k">for</span> ex <span class="k">in</span> train_set:
+        f.<span class="fn">write</span>(json.<span class="fn">dumps</span>(ex, ensure_ascii=<span class="k">False</span>) + <span class="s">"\n"</span>)
+
+<span class="k">with</span> <span class="fn">open</span>(<span class="s">"data/splits/valid.jsonl"</span>, <span class="s">"w"</span>) <span class="k">as</span> f:
+    <span class="k">for</span> ex <span class="k">in</span> val_set:
+        f.<span class="fn">write</span>(json.<span class="fn">dumps</span>(ex, ensure_ascii=<span class="k">False</span>) + <span class="s">"\n"</span>)
+
+print(<span class="s">f"\n✅ Quality filtering complete!"</span>)
+print(<span class="s">f"   Kept: {len(filtered)} / {len(scored)} ({len(filtered)/len(scored)*100:.0f}%)"</span>)
+print(<span class="s">f"   Train: {len(train_set)} · Val: {len(val_set)}"</span>)
+print(<span class="s">"Next: quit Ollama, then run SFT training"</span>)
+print(<span class="s">"  → bash scripts/04_sft_train.sh"</span>)</pre>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ SFT -->
+<div id="sft" class="page">
+  <div class="hero">
+    <div class="hero-label">Phase 1</div>
+    <h1>SFT Training<br><em>MLX-LM LoRA on M4 Pro</em></h1>
+    <p>Supervised Fine-Tuning using Apple's MLX framework. Quit Ollama first to free 9GB. Training runs overnight — ~5-8 hours for 5,000 iterations.</p>
+  </div>
+
+  <div class="call c-rust">
+    <div class="call-icon">🛑</div>
+    <div class="call-body"><strong>Critical: Quit Ollama before starting SFT</strong> Run <code>ollama stop</code> or just quit Ollama from the menubar. This frees ~9GB of unified memory. Without this, SFT will hit memory pressure and be 3× slower or crash. Verify with Activity Monitor → Memory before starting training.</div>
+  </div>
+
+  <div class="code-block">
+    <div class="cb-header"><span class="cb-file">scripts/04_sft_train.sh</span><span class="cb-tag">bash</span></div>
+    <pre><span class="c">#!/bin/bash
+# SFT Training via MLX-LM native LoRA
+# Runtime: ~5-8 hours on M4 Pro 24GB
+# Start before sleeping — it runs hands-off</span>
+
+source .venv/bin/activate
+
+<span class="c"># Symlink val file to what mlx-lm expects</span>
+ln -sf $(pwd)/data/splits/valid.jsonl data/splits/valid.jsonl
+
+echo "Starting SFT training..."
+echo "Log: logs/sft.log"
+echo "Adapters will save to: checkpoints/sft/"
+mkdir -p logs checkpoints/sft
+
+python -m mlx_lm.lora \
+    --model google/gemma-3-4b-it \
+    --train \
+    --data data/splits \
+    --batch-size 1 \
+    --iters 5000 \
+    --learning-rate 2e-5 \
+    --num-layers 16 \
+    --lora-rank 32 \
+    --lora-scale 64.0 \
+    --val-batches 25 \
+    --steps-per-eval 500 \
+    --save-every 500 \
+    --adapter-path checkpoints/sft \
+    --max-seq-length 512 \
+    --grad-checkpoint \
+    2>&1 | tee logs/sft.log
+
+echo ""
+echo "SFT training complete!"
+echo "Best adapter in: checkpoints/sft/"
+echo "Next: python scripts/05_eval.py --adapter checkpoints/sft"</pre>
+  </div>
+
+  <h2>Monitor Training in Real-Time</h2>
+  <div class="code-block">
+    <div class="cb-header"><span class="cb-file">terminal (second window)</span><span class="cb-tag">bash</span></div>
+    <pre><span class="c"># Watch training loss live</span>
+tail -f logs/sft.log | grep -E "Iter|loss|Val"
+
+<span class="c"># Healthy training progression (approximate):
+# Iter 500:  Train loss ~1.60, Val loss ~1.72
+# Iter 1000: Train loss ~1.35, Val loss ~1.44
+# Iter 2000: Train loss ~1.10, Val loss ~1.18
+# Iter 3000: Train loss ~0.95, Val loss ~1.02
+# Iter 5000: Train loss ~0.80, Val loss ~0.89
+#
+# Stop early if val loss RISES above 1.0 after falling — that's overfitting</span>
+
+<span class="c"># Check GPU memory usage while training</span>
+sudo powermetrics --sample-count 3 --samplers gpu_power \
+    | grep -E "GPU|Memory"</pre>
+  </div>
+
+  <h2>Evaluate SFT — Quick Check</h2>
+  <div class="code-block">
+    <div class="cb-header"><span class="cb-file">scripts/05_eval.py</span><span class="cb-tag">python</span></div>
+    <pre><span class="c">"""
+Quick evaluation on 100 GSM8K test examples.
+Compares baseline vs any adapter checkpoint.
+Usage: python scripts/05_eval.py --adapter checkpoints/sft
+"""</span>
+<span class="k">import</span> argparse, json, re
+<span class="k">from</span> mlx_lm <span class="k">import</span> load, generate
+<span class="k">from</span> datasets <span class="k">import</span> load_dataset
+<span class="k">from</span> config <span class="k">import</span> BASE_MODEL
+
+p = argparse.<span class="fn">ArgumentParser</span>()
+p.<span class="fn">add_argument</span>(<span class="s">"--adapter"</span>, default=<span class="k">None</span>)
+p.<span class="fn">add_argument</span>(<span class="s">"--n"</span>, type=<span class="fn">int</span>, default=<span class="n">100</span>)
+args = p.<span class="fn">parse_args</span>()
+
+model, tok = <span class="fn">load</span>(BASE_MODEL, adapter_path=args.adapter)
+tag = <span class="s">"SFT"</span> <span class="k">if</span> args.adapter <span class="k">else</span> <span class="s">"Baseline"</span>
+
+gsm_test = load_dataset(<span class="s">"gsm8k"</span>, <span class="s">"main"</span>)[<span class="s">"test"</span>]
+correct = <span class="n">0</span>
+<span class="k">for</span> i, ex <span class="k">in</span> <span class="fn">enumerate</span>(gsm_test.select(<span class="fn">range</span>(args.n))):
+    out = <span class="fn">generate</span>(model, tok,
+                   <span class="s">f"Solve step-by-step:\n{ex['question']}"</span>,
+                   max_tokens=<span class="n">400</span>, temp=<span class="n">0.0</span>, verbose=<span class="k">False</span>)
+    gt  = ex[<span class="s">"answer"</span>].split(<span class="s">"####"</span>)[<span class="n">-1</span>].strip()
+    m   = re.<span class="fn">search</span>(<span class="s">r'&lt;answer&gt;\s*([\d,.-]+)'</span>, out)
+    pred = m.<span class="fn">group</span>(<span class="n">1</span>).<span class="fn">replace</span>(<span class="s">","</span>,<span class="s">""</span>) <span class="k">if</span> m <span class="k">else</span> <span class="s">""</span>
+    <span class="k">try</span>: correct += (<span class="fn">abs</span>(<span class="fn">float</span>(pred) - <span class="fn">float</span>(gt)) < <span class="n">0.01</span>)
+    <span class="k">except</span>: correct += (pred == gt)
+    <span class="k">if</span> (i+<span class="n">1</span>) % <span class="n">20</span> == <span class="n">0</span>:
+        print(<span class="s">f"  [{i+1}/{args.n}] Running: {correct/(i+1)*100:.1f}%"</span>)
+
+print(<span class="s">f"\n{tag} GSM8K: {correct/args.n*100:.1f}%  ({correct}/{args.n})"</span>)</pre>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ RAFT -->
+<div id="raft" class="page">
+  <div class="hero">
+    <div class="hero-label">Phase 3 — Local RL</div>
+    <h1>RAFT Iterations<br><em>Reinforcement Learning on 24GB</em></h1>
+    <p>RAFT (Reward rAnked Fine-Tuning) is your local RL mechanism. Generate K=4 solutions per problem, score by rule-based ORM, fine-tune on winners only. Three iterations. No second model needed.</p>
+  </div>
+
+  <div class="g2">
+    <div style="background:var(--ink3);border:1px solid rgba(90,171,122,0.2);border-radius:10px;padding:18px">
+      <div style="font-size:13px;font-weight:700;color:var(--sage-l);margin-bottom:8px">Why RAFT instead of GRPO?</div>
+      <div style="font-size:12px;color:var(--dim);line-height:1.7">GRPO needs 2× model copies in memory simultaneously. RAFT only needs one. RAFT paper showed matching PPO performance with simpler implementation. K=4 (not 8) because that's what fits in 24GB for Gemma 4 E4B. Each RAFT iteration is just: generate → score → train on winners.</div>
+    </div>
+    <div style="background:var(--ink3);border:1px solid rgba(212,168,67,0.2);border-radius:10px;padding:18px">
+      <div style="font-size:13px;font-weight:700;color:var(--gold-l);margin-bottom:8px">Expected gains per RAFT iteration</div>
+      <div style="font-size:12px;color:var(--dim);line-height:1.7">Iteration 1: +3-5% GSM8K over SFT baseline. Iteration 2: +2-3% additional. Iteration 3: +1-2% additional. Total: +6-10% over SFT, which already beat baseline by ~15-20%. Combined gain over raw baseline: ~21-30%.</div>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="cb-header"><span class="cb-file">scripts/06_raft_loop.py</span><span class="cb-tag">python</span></div>
+    <pre><span class="c">"""
+RAFT: Local Reinforcement Learning for Gemma 4 E4B
+One script runs all 3 iterations sequentially.
+Usage: python scripts/06_raft_loop.py --start-iter 1
+Runtime: ~3-4 hours per iteration = ~10-12 hours total
+"""</span>
+<span class="k">import</span> json, re, argparse, subprocess, random
+<span class="k">from</span> pathlib <span class="k">import</span> Path
+<span class="k">from</span> mlx_lm <span class="k">import</span> load, generate
+<span class="k">from</span> config <span class="k">import</span> BASE_MODEL, RAFT_K, RAFT_ITERS
+
+<span class="k">def</span> <span class="fn">orm_score</span>(completion: str, ground_truth: str, task: str = <span class="s">"math"</span>) -> float:
+    <span class="cls">"""Rule-based Outcome Reward Model. 1.0=correct, 0.0=wrong.
+    For math: exact number match. For MCQ: letter match."""</span>
+    m = re.<span class="fn">search</span>(<span class="s">r'&lt;answer&gt;\s*(.*?)\s*&lt;/answer&gt;'</span>, completion, re.DOTALL)
+    pred = m.<span class="fn">group</span>(<span class="n">1</span>).strip() <span class="k">if</span> m <span class="k">else</span> <span class="s">""</span>
+    pred = re.<span class="fn">sub</span>(<span class="s">r'[,$]'</span>, <span class="s">''</span>, pred).strip()
+    gt   = re.<span class="fn">sub</span>(<span class="s">r'[,$]'</span>, <span class="s">''</span>, ground_truth).strip()
+
+    <span class="k">if</span> task == <span class="s">"math"</span>:
+        <span class="k">try</span>: <span class="k">return</span> <span class="n">1.0</span> <span class="k">if</span> <span class="fn">abs</span>(<span class="fn">float</span>(pred) - <span class="fn">float</span>(gt)) < <span class="n">0.01</span> <span class="k">else</span> <span class="n">0.0</span>
+        <span class="k">except</span>: <span class="k">return</span> <span class="n">1.0</span> <span class="k">if</span> pred == gt <span class="k">else</span> <span class="n">0.0</span>
+    <span class="k">else</span>:
+        pred_l = pred.upper()[:<span class="n">1</span>]
+        gt_l   = gt.upper()[:<span class="n">1</span>]
+        <span class="k">return</span> <span class="n">1.0</span> <span class="k">if</span> pred_l == gt_l <span class="k">else</span> <span class="n">0.0</span>
+
+<span class="k">def</span> <span class="fn">format_reward</span>(completion: str) -> float:
+    <span class="cls">"""Small reward for using correct &lt;think&gt;&lt;answer&gt; format."""</span>
+    has_think  = <span class="s">"&lt;think&gt;"</span> <span class="k">in</span> completion <span class="k">and</span> <span class="s">"&lt;/think&gt;"</span> <span class="k">in</span> completion
+    has_answer = <span class="s">"&lt;answer&gt;"</span> <span class="k">in</span> completion <span class="k">and</span> <span class="s">"&lt;/answer&gt;"</span> <span class="k">in</span> completion
+    has_steps  = completion.count(<span class="s">"\n"</span>) >= <span class="n">2</span>
+    <span class="k">return</span> <span class="n">0.1</span> <span class="k">if</span> (has_think <span class="k">and</span> has_answer <span class="k">and</span> has_steps) <span class="k">else</span> <span class="n">0.0</span>
+
+<span class="k">def</span> <span class="fn">run_raft_iteration</span>(iteration: int, model, tokenizer, train_data: list):
+    print(<span class="s">f"\n{'='*50}"</span>)
+    print(<span class="s">f"RAFT Iteration {iteration}/{RAFT_ITERS}"</span>)
+    print(<span class="s">f"{'='*50}"</span>)
+
+    raft_winners = []   <span class="c"># (prompt, best_completion) pairs</span>
+    stats = {<span class="s">"correct_k1"</span>:<span class="n">0</span>, <span class="s">"correct_any"</span>:<span class="n">0</span>, <span class="s">"total"</span>:<span class="n">0</span>}
+
+    <span class="c"># Sample 2000 problems per RAFT iteration for speed</span>
+    sample = random.<span class="fn">sample</span>(train_data, <span class="fn">min</span>(<span class="n">2000</span>, <span class="fn">len</span>(train_data)))
+
+    <span class="k">for</span> i, ex <span class="k">in</span> <span class="fn">enumerate</span>(sample):
+        prompt = ex[<span class="s">"prompt"</span>]
+        gt     = ex[<span class="s">"answer"</span>]
+        task   = ex.get(<span class="s">"task"</span>, <span class="s">"math"</span>)
+
+        <span class="c"># Generate K=4 candidates at temperature 0.8 for diversity</span>
+        candidates = []
+        <span class="k">for</span> _ <span class="k">in</span> <span class="fn">range</span>(RAFT_K):
+            c = <span class="fn">generate</span>(model, tokenizer, prompt,
+                          max_tokens=<span class="n">400</span>, temp=<span class="n">0.8</span>, verbose=<span class="k">False</span>)
+            candidates.<span class="fn">append</span>(c)
+
+        <span class="c"># Score each candidate: ORM + format</span>
+        scores = [<span class="fn">orm_score</span>(c, gt, task) + <span class="fn">format_reward</span>(c) <span class="k">for</span> c <span class="k">in</span> candidates]
+        best_idx   = scores.<span class="fn">index</span>(<span class="fn">max</span>(scores))
+        best_score = scores[best_idx]
+
+        <span class="c"># Only keep examples where at least one candidate was correct</span>
+        <span class="k">if</span> best_score >= <span class="n">1.0</span>:  <span class="c"># ORM reward = 1.0 means correct answer</span>
+            raft_winners.<span class="fn">append</span>({
+                <span class="s">"prompt"</span>:     prompt,
+                <span class="s">"completion"</span>: candidates[best_idx],
+                <span class="s">"answer"</span>:     gt,
+                <span class="s">"task"</span>:       task,
+                <span class="s">"source"</span>:     <span class="s">f"raft_iter{iteration}"</span>,
+                <span class="s">"reward"</span>:     best_score,
+            })
+            stats[<span class="s">"correct_any"</span>] += <span class="n">1</span>
+            <span class="k">if</span> <span class="fn">orm_score</span>(candidates[<span class="n">0</span>], gt, task) == <span class="n">1.0</span>:
+                stats[<span class="s">"correct_k1"</span>] += <span class="n">1</span>
+
+        stats[<span class="s">"total"</span>] += <span class="n">1</span>
+
+        <span class="k">if</span> (i+<span class="n">1</span>) % <span class="n">100</span> == <span class="n">0</span>:
+            pass_at_1   = stats[<span class="s">"correct_k1"</span>]  / stats[<span class="s">"total"</span>] * <span class="n">100</span>
+            pass_at_k   = stats[<span class="s">"correct_any"</span>] / stats[<span class="s">"total"</span>] * <span class="n">100</span>
+            print(<span class="s">f"  [{i+1}/{len(sample)}] pass@1={pass_at_1:.1f}% pass@K={pass_at_k:.1f}%"</span>
+                  <span class="s">f" winners={len(raft_winners)}"</span>)
+
+    <span class="c"># Save winners as the fine-tuning dataset for this iteration</span>
+    winners_path = <span class="s">f"data/processed/raft_winners_iter{iteration}.jsonl"</span>
+    <span class="k">with</span> <span class="fn">open</span>(winners_path, <span class="s">"w"</span>) <span class="k">as</span> f:
+        <span class="k">for</span> w <span class="k">in</span> raft_winners:
+            f.<span class="fn">write</span>(json.<span class="fn">dumps</span>(w) + <span class="s">"\n"</span>)
+
+    print(<span class="s">f"\n  Winners saved: {len(raft_winners)} / {len(sample)}"</span>)
+    print(<span class="s">f"  Pass@1 baseline: {stats['correct_k1']/stats['total']*100:.1f}%"</span>)
+    print(<span class="s">f"  Pass@K (K={RAFT_K}): {stats['correct_any']/stats['total']*100:.1f}%"</span>)
+
+    <span class="c"># Fine-tune on winners using mlx-lm LoRA</span>
+    prev_ckpt = <span class="s">f"checkpoints/sft"</span> <span class="k">if</span> iteration == <span class="n">1</span> <span class="k">else</span> <span class="s">f"checkpoints/raft/iter{iteration-1}"</span>
+    curr_ckpt = <span class="s">f"checkpoints/raft/iter{iteration}"</span>
+    Path(curr_ckpt).<span class="fn">mkdir</span>(parents=<span class="k">True</span>, exist_ok=<span class="k">True</span>)
+
+    <span class="c"># Create symlink for val data</span>
+    import os
+    os.makedirs(<span class="s">f"data/raft_iter{iteration}"</span>, exist_ok=<span class="k">True</span>)
+    import shutil
+    shutil.<span class="fn">copy</span>(winners_path, <span class="s">f"data/raft_iter{iteration}/train.jsonl"</span>)
+    shutil.<span class="fn">copy</span>(<span class="s">"data/splits/valid.jsonl"</span>, <span class="s">f"data/raft_iter{iteration}/valid.jsonl"</span>)
+
+    print(<span class="s">f"\n  Fine-tuning on {len(raft_winners)} winners..."</span>)
+    cmd = [
+        <span class="s">"python"</span>, <span class="s">"-m"</span>, <span class="s">"mlx_lm.lora"</span>,
+        <span class="s">"--model"</span>, BASE_MODEL,
+        <span class="s">"--resume-adapter-file"</span>, prev_ckpt + <span class="s">"/adapters.safetensors"</span>,
+        <span class="s">"--train"</span>,
+        <span class="s">"--data"</span>, <span class="s">f"data/raft_iter{iteration}"</span>,
+        <span class="s">"--batch-size"</span>, <span class="s">"1"</span>,
+        <span class="s">"--iters"</span>, <span class="s">"1000"</span>,
+        <span class="s">"--learning-rate"</span>, <span class="s">"5e-6"</span>,
+        <span class="s">"--lora-rank"</span>, <span class="s">"16"</span>,
+        <span class="s">"--num-layers"</span>, <span class="s">"16"</span>,
+        <span class="s">"--adapter-path"</span>, curr_ckpt,
+        <span class="s">"--max-seq-length"</span>, <span class="s">"400"</span>,
+    ]
+    subprocess.<span class="fn">run</span>(cmd, check=<span class="k">True</span>)
+    print(<span class="s">f"\n✅ RAFT iteration {iteration} complete → {curr_ckpt}"</span>)
+    <span class="k">return</span> curr_ckpt
+
+<span class="c"># ── Main loop ─────────────────────────────────────────────────</span>
+<span class="k">if</span> __name__ == <span class="s">"__main__"</span>:
+    ap = argparse.<span class="fn">ArgumentParser</span>()
+    ap.<span class="fn">add_argument</span>(<span class="s">"--start-iter"</span>, type=<span class="fn">int</span>, default=<span class="n">1</span>)
+    args = ap.<span class="fn">parse_args</span>()
+
+    <span class="c"># Load from last checkpoint before starting</span>
+    start_adapter = <span class="s">"checkpoints/sft"</span> <span class="k">if</span> args.start_iter == <span class="n">1</span> \
+                   <span class="k">else</span> <span class="s">f"checkpoints/raft/iter{args.start_iter-1}"</span>
+
+    print(<span class="s">f"Loading model with adapter: {start_adapter}"</span>)
+    model, tok = <span class="fn">load</span>(BASE_MODEL, adapter_path=start_adapter)
+
+    <span class="k">with</span> <span class="fn">open</span>(<span class="s">"data/splits/train.jsonl"</span>) <span class="k">as</span> f:
+        train_data = [json.<span class="fn">loads</span>(l) <span class="k">for</span> l <span class="k">in</span> f]
+    <span class="c"># Use only math examples for RAFT (rule-based ORM is most accurate here)</span>
+    train_math = [ex <span class="k">for</span> ex <span class="k">in</span> train_data <span class="k">if</span> ex.get(<span class="s">"task"</span>) == <span class="s">"math"</span>]
+    print(<span class="s">f"Math training examples for RAFT: {len(train_math)}"</span>)
+
+    <span class="k">for</span> it <span class="k">in</span> <span class="fn">range</span>(args.start_iter, RAFT_ITERS + <span class="n">1</span>):
+        new_ckpt = <span class="fn">run_raft_iteration</span>(it, model, tok, train_math)
+        <span class="c"># Reload model with new adapter for next iteration</span>
+        <span class="k">del</span> model, tok
+        model, tok = <span class="fn">load</span>(BASE_MODEL, adapter_path=new_ckpt)
+        <span class="c"># Quick eval after each iteration</span>
+        print(<span class="s">f"\nRunning quick eval after iteration {it}..."</span>)
+        subprocess.<span class="fn">run</span>([<span class="s">"python"</span>, <span class="s">"scripts/05_eval.py"</span>,
+                         <span class="s">"--adapter"</span>, new_ckpt, <span class="s">"--n"</span>, <span class="s">"50"</span>])
+
+    print(<span class="s">"\n🎉 All RAFT iterations complete!"</span>)
+    print(<span class="s">f"Final model: checkpoints/raft/iter{RAFT_ITERS}"</span>)
+    print(<span class="s">"Run full benchmark: python scripts/07_final_benchmark.py"</span>)</pre>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ EVAL -->
+<div id="eval" class="page">
+  <div class="hero">
+    <div class="hero-label">Evaluation</div>
+    <h1>Final Benchmarks<br><em>& Submission Checklist</em></h1>
+    <p>Complete evaluation on all three required benchmarks. Build the ablation table. Build the Gradio demo. Everything you need for submission.</p>
+  </div>
+
+  <div class="code-block">
+    <div class="cb-header"><span class="cb-file">scripts/07_final_benchmark.py</span><span class="cb-tag">python</span></div>
+    <pre><span class="c">"""Full benchmark evaluation on GSM8K, StrategyQA. MMLU via lm-eval."""</span>
+<span class="k">import</span> json, re
+<span class="k">from</span> mlx_lm <span class="k">import</span> load, generate
+<span class="k">from</span> datasets <span class="k">import</span> load_dataset
+<span class="k">from</span> config <span class="k">import</span> BASE_MODEL
+
+FINAL_ADAPTER = <span class="s">"checkpoints/raft/iter3"</span>
+
+model, tok = <span class="fn">load</span>(BASE_MODEL, adapter_path=FINAL_ADAPTER)
+
+<span class="k">def</span> <span class="fn">run_gsm8k_full</span>(n=<span class="n">500</span>):
+    data = load_dataset(<span class="s">"gsm8k"</span>, <span class="s">"main"</span>)[<span class="s">"test"</span>].select(<span class="fn">range</span>(n))
+    correct = <span class="n">0</span>
+    <span class="k">for</span> i, ex <span class="k">in</span> <span class="fn">enumerate</span>(data):
+        out = <span class="fn">generate</span>(model, tok,
+                       <span class="s">f"Solve step-by-step:\n{ex['question']}"</span>,
+                       max_tokens=<span class="n">400</span>, temp=<span class="n">0.0</span>, verbose=<span class="k">False</span>)
+        gt  = ex[<span class="s">"answer"</span>].split(<span class="s">"####"</span>)[<span class="n">-1</span>].strip()
+        m   = re.<span class="fn">search</span>(<span class="s">r'&lt;answer&gt;\s*([\d,.-]+)'</span>, out)
+        pred = m.<span class="fn">group</span>(<span class="n">1</span>).<span class="fn">replace</span>(<span class="s">","</span>,<span class="s">""</span>) <span class="k">if</span> m <span class="k">else</span> <span class="s">""</span>
+        <span class="k">try</span>: correct += (<span class="fn">abs</span>(<span class="fn">float</span>(pred)-<span class="fn">float</span>(gt)) < <span class="n">0.01</span>)
+        <span class="k">except</span>: correct += (pred==gt)
+        <span class="k">if</span> (i+<span class="n">1</span>)%<span class="n">50</span>==<span class="n">0</span>: print(<span class="s">f"  GSM8K {i+1}/{n}: {correct/(i+1)*100:.1f}%"</span>)
+    <span class="k">return</span> correct / n * <span class="n">100</span>
+
+<span class="k">def</span> <span class="fn">run_strategyqa</span>(n=<span class="n">200</span>):
+    <span class="c"># StrategyQA from BIG-bench or MMLU-style</span>
+    <span class="k">try</span>:
+        data = load_dataset(<span class="s">"ChilleD/StrategyQA"</span>)[<span class="s">"test"</span>].select(<span class="fn">range</span>(n))
+    <span class="k">except</span>:
+        print(<span class="s">"StrategyQA not found — try: load_dataset('strategy_qa')"</span>)
+        <span class="k">return</span> <span class="k">None</span>
+    correct = <span class="n">0</span>
+    <span class="k">for</span> i, ex <span class="k">in</span> <span class="fn">enumerate</span>(data):
+        out = <span class="fn">generate</span>(model, tok,
+                       <span class="s">f"Answer yes or no, step-by-step:\n{ex['question']}"</span>,
+                       max_tokens=<span class="n">200</span>, temp=<span class="n">0.0</span>, verbose=<span class="k">False</span>)
+        gt_yes = ex[<span class="s">"answer"</span>] <span class="k">if</span> <span class="fn">isinstance</span>(ex[<span class="s">"answer"</span>], bool) <span class="k">else</span> \
+                 ex[<span class="s">"answer"</span>].lower() == <span class="s">"yes"</span>
+        pred_yes = <span class="s">"yes"</span> <span class="k">in</span> out.lower()[:100]
+        correct += (pred_yes == gt_yes)
+    <span class="k">return</span> correct / n * <span class="n">100</span>
+
+print(<span class="s">"=== FINAL EVALUATION ==="</span>)
+gsm_acc  = <span class="fn">run_gsm8k_full</span>(n=<span class="n">500</span>)
+print(<span class="s">f"GSM8K (500 samples): {gsm_acc:.1f}%"</span>)
+strat_acc = <span class="fn">run_strategyqa</span>(n=<span class="n">200</span>)
+<span class="k">if</span> strat_acc: print(<span class="s">f"StrategyQA: {strat_acc:.1f}%"</span>)
+
+<span class="c"># MMLU — use lm-eval-harness</span>
+print(<span class="s">"\nFor MMLU, run:"</span>)
+print(<span class="s">"  pip install lm-eval"</span>)
+print(<span class="s">"  lm_eval --model mlx_lm --model_args model=google/gemma-3-4b-it,adapter_path=checkpoints/raft/iter3 --tasks mmlu --num_fewshot 5"</span>)</pre>
+  </div>
+
+  <h2>Run Order — Complete Summary</h2>
+  <div class="code-block">
+    <div class="cb-header"><span class="cb-file">RUN THIS SEQUENCE IN ORDER</span><span class="cb-tag">bash</span></div>
+    <pre><span class="c"># ── Day 1: Setup ──────────────────────────────────────────────</span>
+ollama pull qwen2.5:14b-instruct-q4_K_M   <span class="c"># Download Qwen (8.7GB)</span>
+python scripts/01_download.py              <span class="c"># Download all datasets</span>
+python scripts/02_format_data.py           <span class="c"># Format to CoT template</span>
+python scripts/03_qwen_filter.py           <span class="c"># Quality filter (6-8hrs, start morning)</span>
+
+<span class="c"># ── Day 2: Baseline + SFT ─────────────────────────────────────</span>
+ollama stop                                <span class="c"># FREE 9GB before training</span>
+python scripts/05_eval.py                  <span class="c"># BASELINE eval (record numbers!)</span>
+bash scripts/04_sft_train.sh               <span class="c"># SFT overnight (5-8 hrs)</span>
+
+<span class="c"># ── Day 3: SFT eval + PRM data ────────────────────────────────</span>
+python scripts/05_eval.py --adapter checkpoints/sft   <span class="c"># SFT eval</span>
+<span class="c"># Load Math-Shepherd dataset and prepare PRM training data</span>
+
+<span class="c"># ── Day 4-5: RAFT iterations ──────────────────────────────────</span>
+python scripts/06_raft_loop.py --start-iter 1         <span class="c"># ~10-12 hrs total</span>
+
+<span class="c"># ── Day 6-7: Eval + Demo ──────────────────────────────────────</span>
+python scripts/07_final_benchmark.py                  <span class="c"># Full benchmarks</span>
+python scripts/08_gradio_demo.py                      <span class="c"># Launch demo</span></pre>
+  </div>
+
+  <h2>Results Table — Fill In As You Go</h2>
+  <table>
+    <tr><th>Phase</th><th>GSM8K</th><th>StrategyQA</th><th>MMLU</th><th>Notes</th></tr>
+    <tr><td>🔴 Raw Baseline</td><td>___._% </td><td>___._% </td><td>___._% </td><td>Record before ANY training</td></tr>
+    <tr><td>🟡 After SFT</td><td>___._% </td><td>___._% </td><td>___._% </td><td>Expected +15-20% GSM8K</td></tr>
+    <tr><td>🟢 RAFT Iter 1</td><td>___._% </td><td>___._% </td><td>___._% </td><td>Expected +3-5% more</td></tr>
+    <tr><td>🟢 RAFT Iter 2</td><td>___._% </td><td>___._% </td><td>___._% </td><td>Expected +2-3% more</td></tr>
+    <tr><td>🟢 RAFT Iter 3</td><td>___._% </td><td>___._% </td><td>___._% </td><td>Final model</td></tr>
+    <tr><td>✨ +Best-of-4</td><td>___._% </td><td>___._% </td><td>—</td><td>Wow factor: TTC scaling</td></tr>
+    <tr><td>🎯 Target</td><td class="ok">≥50%</td><td class="ok">≥65%</td><td class="ok">≥45%</td><td>Need +5% on ≥2 benchmarks</td></tr>
+  </table>
+</div>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const map = {datasets:0,memory:1,pipeline:2,env:3,'data-code':4,teacher:5,sft:6,raft:7,eval:8};
+  document.querySelectorAll('.tab')[map[id]]?.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>
